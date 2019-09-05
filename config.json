@@ -1,0 +1,65 @@
+{
+    "superuser": {
+        "username": "admin",
+        "password": "admin"
+    },
+    "global": {
+        "path": "",
+        "public_url": "http://localhost/public"
+    },
+    "database": {
+        "host": "108.167.181.244",
+        "inst": "enzarro_wod",
+        "user": "enzarro_wodadmin",
+        "pass": "qazwsx.01"
+    },
+    "sysres": [{
+        "id": -1,
+        "parent_id": null,
+        "texto": "Sistema",
+        "icono": "fa fa-terminal",
+        "funcion": null
+    }, {
+        "id": -2,
+        "parent_id": -1,
+        "texto": "Mantenedores",
+        "icono": "fa fa-circle-o",
+        "funcion": "mantenedores"
+    }, {
+        "id": -3,
+        "parent_id": -2,
+        "texto": "Mantenedores",
+        "icono": "fa fa-circle-o",
+        "funcion": "mantenedores"
+    }, {
+        "id": -4,
+        "parent_id": -3,
+        "texto": "Mantenedores",
+        "icono": "fa fa-circle-o",
+        "funcion": "mantenedores"
+    }, {
+        "id": -5,
+        "parent_id": -4,
+        "texto": "Mantenedores",
+        "icono": "fa fa-circle-o",
+        "funcion": "mantenedores"
+    }, {
+        "id": -6,
+        "parent_id": -5,
+        "texto": "Mantenedores",
+        "icono": "fa fa-circle-o",
+        "funcion": "mantenedores"
+    }, {
+        "id": -7,
+        "parent_id": -6,
+        "texto": "Mantenedores",
+        "icono": "fa fa-circle-o",
+        "funcion": "mantenedores"
+    }, {
+        "id": -8,
+        "parent_id": -7,
+        "texto": "Mantenedores",
+        "icono": "fa fa-circle-o",
+        "funcion": "mantenedores"
+    }]
+}

@@ -1,0 +1,4 @@
+/public/bower_components
+/public/dist
+/public/plugins
+php_errors.log
