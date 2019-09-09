@@ -7,7 +7,7 @@ class login {
             views.'login'
         ]);
         //$this->model = new m_login();
-        $this->view = new v_login();
+        $this->view = new login_view();
     }
 
     function main() {

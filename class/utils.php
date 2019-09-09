@@ -24,9 +24,8 @@ class utils {
                 '/bower_components/font-awesome/css/font-awesome.min.css',
                 '/bower_components/Ionicons/css/ionicons.min.css'
             ],
-            'sweetalerts' => [
-                'assets/sweetalerts/sweetalert2.min.js',
-                'assets/sweetalerts/sweetalert2.min.css'
+            'sweetalert' => [
+                '/bower_components/sweetalert2/sweetalert2.all.min.js'
             ],
             'autonumeric' => [
                 'core/js/autoNumeric/autoNumeric.min.js'

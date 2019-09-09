@@ -9,7 +9,7 @@ class frame_view {
         $this->utils = new utils();
         //Plugins base del frame
         $this->css = ['adminlte', 'icons'];
-        $this->js = ['jquery', 'adminlte'];
+        $this->js = ['jquery', 'adminlte', 'sweetalert', '/js/frame.js'];
     }
 
     /**
@@ -291,7 +291,7 @@ class frame_view {
                 <li class="dropdown user user-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                     <img src="<?=public_url?>/dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
-                    <span class="hidden-xs">Alexander Pierce</span>
+                    <span class="hidden-xs">Antonio Roa</span>
                     </a>
                     <ul class="dropdown-menu">
                     <!-- User image -->
@@ -299,7 +299,7 @@ class frame_view {
                         <img src="<?=public_url?>/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
 
                         <p>
-                        Alexander Pierce - Web Developer
+                        Antonio Roa - Web Developer
                         <small>Member since Nov. 2012</small>
                         </p>
                     </li>
@@ -409,7 +409,7 @@ class frame_view {
           <img src="<?=public_url?>/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
         </div>
         <div class="pull-left info">
-          <p>Alexander Pierce</p>
+          <p>Antonio Roa</p>
           <a href="#"><i class="fa fa-circle text-success"></i> En línea</a>
         </div>
       </div>

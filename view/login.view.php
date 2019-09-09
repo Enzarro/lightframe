@@ -1,6 +1,6 @@
 <?php
 
-class v_login {
+class login_view {
     /**
      * @param bool  $error  Mostrar mensaje de error 
      */
