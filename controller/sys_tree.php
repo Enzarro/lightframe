@@ -1,28 +1,31 @@
 <?php
 
-class sys_config {
+class sys_tree {
     function __construct() {
         utils::load([
-            views.'sys_config',
-            models.'sys_config'
+            views.'sys_tree',
+            models.'sys_tree'
         ]);
-        $this->view = new sys_config_view();
-        $this->model = new sys_config_model();
+        $this->view = new sys_tree_view();
+        $this->model = new sys_tree_model();
         $this->frame_view = new frame_view();
     }
 
     function main() {
         $this->frame_view->main([
             'menu' => get_class(),
-            // 'css' => ['datatables'],
-            'js' => [/*'datatables', */'/js/sys_config.js'],
-            'concatPlugins' => true,
+            'css' => ['datatables'],
+            'js' => ['datatables', '/js/sys_tree.js'],
             'body' => [
-                'title' => 'Configuraciones',
-                'subtitle' => 'Parámetros del frame',
+                'title' => 'Árbol de recursos',
+                'subtitle' => 'Parametrización de estructura de menús',
                 'html' => $this->view->html()
             ]
         ]);
+    }
+
+    function list() {
+        echo json_encode($this->model->list());
     }
 
     //User

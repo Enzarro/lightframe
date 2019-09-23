@@ -4,12 +4,13 @@ class frame_view {
 
     var $css;
     var $js;
+    var $menu;
 
     function __construct($req = null) {
         $this->utils = new utils();
         //Plugins base del frame
         $this->css = ['adminlte', 'icons'];
-        $this->js = ['jquery', 'adminlte', 'sweetalert', '/js/frame.js'];
+        $this->js = ['jquery', 'jquery-cookie', 'adminlte', 'sweetalert', '/js/frame.js'];
     }
 
     /**
@@ -18,19 +19,25 @@ class frame_view {
      * @param string $body
      */
     function main($data = null) {
+        $default = [
+            'menu' => '',
+            'css' => [],
+            'js' => [],
+            'concatPlugins' => false,
+            'body' => [
+                'title' => '',
+                'subtitle' => '',
+                'html' => ''
+            ]
+        ];
         if (!$data) {
-            $data = [
-                'css' => [],
-                'js' => [],
-                'body' => [
-                    'title' => '',
-                    'subtitle' => '',
-                    'html' => ''
-                ]
-            ];
+            $data = [];
         }
+        $data = array_replace($default, $data);
+        
         extract($data);
         
+        $this->menu = $menu;
 ?>
         <!DOCTYPE html>
     <html>
@@ -41,7 +48,7 @@ class frame_view {
             <!-- Tell the browser to be responsive to screen width -->
             <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
-            <?php echo $this->utils->pluginLoader(array_merge($this->css, $css), 'css'); ?>
+            <?php echo $this->utils->pluginLoader(array_merge($this->css, $css), 'css', $concatPlugins); ?>
 
             <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
             <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -64,7 +71,12 @@ class frame_view {
 
             </div>
             <!-- ./wrapper -->
-            <?php echo $this->utils->pluginLoader(array_merge($this->js, $js), 'js'); ?>
+            <?php echo $this->utils->pluginLoader(array_merge($this->js, $js), 'js', $concatPlugins); ?>
+            <style>
+            .swal2-popup {
+                font-size: 1.4rem !important;
+            }
+            </style>
         </body>
     </html>
 
@@ -391,6 +403,7 @@ class frame_view {
         global $config;
         if (!$data) {
             $data = [
+                'menu' => '',
                 'resources' => []
             ];
         }
@@ -398,7 +411,14 @@ class frame_view {
         $sysres = array_map(function($row) {
             return (array)$row;
         }, $config->sysres);
-        $resources = $this->buildTree(array_merge($sysres, $resources));
+
+        $frameResources = $this->buildTree($sysres);
+
+        if ($resources) {
+            $userResources = $this->buildTree($resources);
+        }
+        
+
 ?>
         <aside class="main-sidebar">
     <!-- sidebar: style can be found in sidebar.less -->
@@ -415,43 +435,13 @@ class frame_view {
       </div>
 
       <ul class="sidebar-menu" data-widget="tree" data-animation-speed="250">
-        <li class="header">NAVEGACIÓN</li>
-        <pre style="display: none;"><?=json_encode($resources, JSON_PRETTY_PRINT)?></pre>
-        <?=$this->menuItems($resources)?>
+        <li class="header">FRAME</li>
+        <?=$this->menuItems($frameResources)?>
 
-        <!-- <li class="treeview">
-          <a href="#">
-            <i class="fa fa-share"></i> <span>Multilevel</span>
-            <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
-          </a>
-          <ul class="treeview-menu">
-            <li><a href="#"><i class="fa fa-circle-o"></i> Level One</a></li>
-            <li class="treeview">
-              <a href="#"><i class="fa fa-circle-o"></i> Level One
-                <span class="pull-right-container">
-                  <i class="fa fa-angle-left pull-right"></i>
-                </span>
-              </a>
-              <ul class="treeview-menu">
-                <li><a href="#"><i class="fa fa-circle-o"></i> Level Two</a></li>
-                <li class="treeview">
-                  <a href="#"><i class="fa fa-circle-o"></i> Level Two
-                    <span class="pull-right-container">
-                      <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                  </a>
-                  <ul class="treeview-menu">
-                    <li><a href="#"><i class="fa fa-circle-o"></i> Level Three</a></li>
-                    <li><a href="#"><i class="fa fa-circle-o"></i> Level Three</a></li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
-            <li><a href="#"><i class="fa fa-circle-o"></i> Level One</a></li>
-          </ul>
-        </li> -->
+        <?php if ($resources): ?>
+        <li class="header">NAVEGACIÓN</li>
+        <?=$this->menuItems($userResources)?>
+        <?php endif; ?>
 
       </ul>
     </section>
@@ -464,7 +454,8 @@ class frame_view {
         ?>
 
         <?php foreach($elements as $element): ?>
-        <li <?php if (isset($element['children'])): ?>class="treeview"<?php endif; ?>>
+
+            <li class="<?php if($this->isChildActive($element, $this->menu)): ?>active<?php endif; ?> <?php if (isset($element['children'])): ?>treeview<?php endif; ?>">
             <a href="<?php if (isset($element['children'])): ?>#<?php else: echo base_url."/".$element['funcion']; endif; ?>">
                 <i class="<?=$element['icono']?>"></i>
                 <span><?=$element['texto']?></span>
@@ -481,6 +472,27 @@ class frame_view {
         <?php
     }
 
+    function isChildActive($element, $search) {
+        if (!$search) {
+            return false;
+        }
+        if ($element['funcion'] == $search) {
+            return true;
+        }
+        if (isset($element['children'])) {
+            foreach ($element['children'] as $child) {
+                if ($child['funcion'] == $search) {
+                    return true;
+                }
+                if (isset($child['children'])) {
+                    $this->isChildActive($child, $search);
+                }
+            }
+        } else {
+            return false;
+        }
+    }
+
     function buildTree(array $elements, $parentId = null) {
 		$branch = array();
 
@@ -495,26 +507,5 @@ class frame_view {
 		}
 
 		return $branch;
-	}
-
-    function liSideMenuTreeArray(array $elements, $level = 1) {
-		ob_start();
-		if ($level != 1) {
-			?><ul class="nav nav-<?php echo $level<4?$this->levels[$level]:$this->levels[3]; ?>-level collapse"><?php
-		} 
-		foreach ($elements as $element) {
-			?>
-			<li>
-				<a href="<?php if (isset($element['children'])): ?>#<?php else: echo pathSite.$element['funcion']; endif; ?>">
-					<span class="<?php echo ($element['icono']); ?>"></span> <?php echo ($element['texto']); if (isset($element['children'])):?> <span class="fa arrow"></span><?php endif; ?>
-				</a>
-				<?php if (isset($element['children'])) echo $this->liSideMenuTreeArray($element['children'], $level + 1); ?>
-			</li>
-			<?php
-		}
-		if ($level != 1) {
-			?></ul><?php
-		}
-		return ob_get_clean();
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 
-class sys_config_view {
+class sys_tree_view {
 
     function __construct() {
         global $config;
@@ -100,81 +100,44 @@ class sys_config_view {
         ];
     }
 
-    function html($data = null) {
-        if (!$data) {
-            $data = [
-                'error' => false
-            ];
-        }
-        extract($data);
+    function html() {
         ob_start(); ?>
+    
         <div class="row">
             <div class="col-xs-12">
-                <!-- Frame Admin -->
                 <div class="box">
                     <div class="box-header">
-                        <h3 class="box-title">Parámetros administrador frame</h3>
-                    </div>
-
-                    <div class="box-body">
-                        <?=$this->FormItem->buildArray($this->formuser)?>
-
-                        <div class="row">
-                            <div class="form-group col-xs-12 col-md-6 form-group-sm" style="margin-bottom: 0px;">
-                                <div class="col-sm-3"></div>
-                                <div class="col-sm-9">
-                                    <button id="saveuser" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Database -->
-                    <div class="box-header">
-                        <h3 class="box-title">Parámetros base de datos</h3>
+                    <!-- <h3 class="box-title"></h3> -->
+                        <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
                     </div>
                     <div class="box-body">
-                        <?=$this->FormItem->buildArray($this->formdb)?>
-
-                        <div class="row">
-                            <div class="form-group col-xs-12 col-md-6 form-group-sm" style="margin-bottom: 0px;">
-                                <div class="col-sm-3"></div>
-                                <div class="col-sm-9">
-                                    <button id="savedb" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
-                                    <button id="testdb" class="btn btn-default"><span class="fa fa-paper-plane"></span> Probar conexión</button>
-                                </div>
-                            </div>
-                        </div>
-
+                        <table id="arbol" class="table table-bordered table-striped"></table>
                     </div>
-
-                    <!-- Database -->
-                    <div class="box-header">
-                        <h3 class="box-title">Parámetros API Login - Token</h3>
-                    </div>
-                    <div class="box-body">
-                        <?=$this->FormItem->buildArray($this->formlogin)?>
-
-                        <div class="row">
-                            <div class="form-group col-xs-12 col-md-6 form-group-sm" style="margin-bottom: 0px;">
-                                <div class="col-sm-3"></div>
-                                <div class="col-sm-9">
-                                    <button id="savelogin" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
-                                    <button id="testlogin" class="btn btn-default"><span class="fa fa-paper-plane"></span> Probar login</button>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- /.box-body -->
                 </div>
-                <!-- /.box -->
             </div>
-            <!-- /.col -->
         </div>
-        <!-- /.row -->
+
+        <div class="modal fade" id="modal-default" style="display: none;">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span></button>
+                    <h4 class="modal-title">CRUD</h4>
+                </div>
+                <div class="modal-body">
+                    <p>One fine body…</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cerrar</button>
+                    <button id="save" type="button" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
+                </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+    
         <?php return ob_get_clean();
     }
 }

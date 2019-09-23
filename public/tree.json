@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "parent_id": null,
+        "texto": "Inversionistas",
+        "icono": "",
+        "funcion": "inversionistas"
+    },
+    {
+        "id": 2,
+        "parent_id": null,
+        "texto": "Bienes",
+        "icono": "",
+        "funcion": "bienes"
+    }
+]

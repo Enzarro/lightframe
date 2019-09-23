@@ -1,13 +1,14 @@
 <?php
 //Variables globales
-define('path', '');
+define('path', '../');
 define('root', $_SERVER['DOCUMENT_ROOT']);
-define('models', root.'/'.path.'model/');
-define('views', root.'/'.path.'view/');
-define('controllers', root.'/'.path.'controller/');
-define('classes', root.'/'.path.'class/');
+define('base', root.'/'.path);
+define('models', base.'model/');
+define('views', base.'view/');
+define('controllers', base.'controller/');
+define('classes', base.'class/');
 define('base_url', 'http://localhost');
-define('public_url', 'http://localhost/public');
+define('public_url', 'http://localhost');
 //Load initial configurations
 $config = [];
 if (file_exists(root."/config.json")) {
@@ -25,6 +26,7 @@ class lightframe {
         //Incluir todos los archivos del frame (?)
         include(classes.'utils.php');
         utils::load([
+            classes.'db.php',
             controllers.'login.php',
             views.'frame'
         ]);
@@ -34,6 +36,8 @@ class lightframe {
 
     function main() {
         $uris = $this->getURIArray();
+        // echo $_SERVER['REQUEST_URI'];
+        // return;
         if ($uris[0] == "login" && ($uris[1] == "login" || $uris[1] == "logout" || $uris[1] == "error")) {
             $this->callFunctionsByURI($uris);
             return;
@@ -59,16 +63,21 @@ class lightframe {
         }
 
         if (!file_exists(controllers."{$uris[0]}.php")) {
-            echo "404";
+            header("HTTP/1.0 404 Not Found");
             exit();
         }
         //Controlador
         include_once(controllers."{$uris[0]}.php");
         $instancia = new $uris[0]();
         $funcion = isset($uris[1]) && $uris[1] != "" ? $uris[1] : null;
-        if ($funcion && method_exists($instancia, $funcion)) {
-            //Función
-            $instancia->$funcion();
+        if ($funcion) {
+            if (method_exists($instancia, $funcion)) {
+                //Función
+                $instancia->$funcion();
+            } else {
+                header("HTTP/1.0 404 Not Found");
+                exit();
+            }
         } else {
             //Home
             $instancia->main();
@@ -76,7 +85,7 @@ class lightframe {
     } 
 
     function getURIArray() {
-        $pathFolder = '/'.path;
+        $pathFolder = '/';
         if (substr($_SERVER['REQUEST_URI'], 0, strlen($pathFolder)) == $pathFolder) {
            return explode('/', substr($_SERVER['REQUEST_URI'], strlen($pathFolder)));
         } else {

@@ -12,7 +12,8 @@ class home {
     function main() {
         $this->frame_view->main([
             'css' => ['datatables'],
-            'js' => ['datatables', '/js/mantenedor_examen.js'],
+            'js' => ['datatables'],
+            'concatPlugins' => true,
             'body' => [
                 'title' => 'Dashboard',
                 'subtitle' => 'Inicio del sistema',

@@ -2,10 +2,18 @@
 
 class utils {
 
-    static function pluginLoader($plugins, $filetype = null) {
+    static function pluginLoader($plugins, $filetype = null, $concat = false) {
         $pluginlist = [
             'jquery' => [
                 '/bower_components/jquery/dist/jquery.min.js'
+                
+            ],
+            'jquery-cookie' => [
+                '/bower_components/jquery-cookie/jquery.cookie.js'
+            ],
+            'jquery-tree' => [
+                '/bower_components/jquery-tree/tree.jquery.js',
+                '/bower_components/jquery-tree/jqtree.css'
             ],
             'adminlte' => [
                 '/bower_components/bootstrap/dist/js/bootstrap.min.js',
@@ -33,22 +41,23 @@ class utils {
             'datatables' => [
                 '/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
                 '/bower_components/datatables.net/js/jquery.dataTables.min.js',
+                '/bower_components/datatables.net/spanish.js',
                 '/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
                 // 'core/bootstrap_admin/vendor/datatables-responsive/dataTables.responsive.js',
                 // 'core/bootstrap_admin/vendor/datatables-responsive/dataTables.responsive.css',
                 // 'core/bootstrap_admin/vendor/datatables/css/dataTables.bootstrap.min.css'
             ],
             'datatables-select' => [
-                "core/bootstrap_admin/vendor/datatables-plugins/dataTables.select.min.js",
-                "core/bootstrap_admin/vendor/datatables-plugins/select.dataTables.min.css"
+                "/plugins/datatables-plugins/dataTables.select.min.js",
+                "/plugins/datatables-plugins/select.dataTables.min.css"
             ],
-            'datepicker' => [
-                'core/js/bootstrap-datepicker/moment.min.js',
-                'core/js/bootstrap-datepicker/moment.locale.es.js',
-                'core/bootstrap/dist/js/transition.js',
-                'core/bootstrap/dist/js/collapse.js',
-                'core/js/bootstrap-datepicker/bootstrap-datetimepicker.min.js',
-                'core/js/bootstrap-datepicker/bootstrap-datetimepicker.min.css'
+            'datetimepicker' => [
+                '/bower_components/bootstrap-datetimepicker/moment.min.js',
+                '/bower_components/bootstrap-datetimepicker/moment.locale.es.js',
+                '/bower_components/bootstrap/js/transition.js',
+                '/bower_components/bootstrap/js/collapse.js',
+                '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js',
+                '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css'
             ],
             'typeahead' => [
                 'core/js/typeahead/bootstrap3-typeahead.js',
@@ -67,9 +76,9 @@ class utils {
                 'core/js/autocomplete_login/autosuggest_inquisitor.css'
             ],
             'bootstrap-select' => [
-                'core/js/bootstrap-select/bootstrap-select.min.js',
-                'core/js/bootstrap-select/defaults-es_CL.min.js',
-                'core/js/bootstrap-select/bootstrap-select.css'
+                '/bower_components/bootstrap-select/js/bootstrap-select.min.js',
+                '/bower_components/bootstrap-select/js/i18n/defaults-es_CL.min.js',
+                '/bower_components/bootstrap-select/css/bootstrap-select.min.css'
             ],
             'socket' => [
                 'nodejs/public/js/socket.io.js'
@@ -77,29 +86,58 @@ class utils {
         ];
 
         ob_start();
-        foreach ($plugins as $plugin) {
-            if (in_array($plugin, array_keys($pluginlist))) {
-                //El plugin solicitado está en el listado
-                foreach($pluginlist[$plugin] as $kLink) {
-                    //Cargar los archivos correspondientes al plugin
-                    if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                        ?><script src="<?php echo public_url.$kLink; ?>"></script><?php
+        //Amorphous
+        if ($concat) {
+            foreach ($plugins as $plugin) {
+                if (in_array($plugin, array_keys($pluginlist))) {
+                    //El plugin solicitado está en el listado
+                    foreach($pluginlist[$plugin] as $kLink) {
+                        //Cargar los archivos correspondientes al plugin
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                            ?><script><?php echo file_get_contents(root.$kLink); ?></script><?php
+                        }
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                            ?><style><?php echo file_get_contents(root.$kLink); ?></style><?php
+                        }
                     }
-                    if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                        ?><link href="<?php echo public_url.$kLink; ?>" rel="stylesheet"><?php
+                    
+                } else if (strstr($plugin, '/')) {
+                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                        ?><script><?php echo file_get_contents(root.$plugin); ?></script><?php
+                    }
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                        ?><style><?php echo file_get_contents(root.$plugin); ?></style><?php
                     }
                 }
-                
-            } else if (strstr($plugin, '/')) {
-                //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
-                if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                    ?><script src="<?php echo public_url.$plugin; ?>"></script><?php
-                }
-                if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                    ?><link href="<?php echo public_url.$plugin; ?>" rel="stylesheet"><?php
+            }
+        } else {
+            //Classic
+            foreach ($plugins as $plugin) {
+                if (in_array($plugin, array_keys($pluginlist))) {
+                    //El plugin solicitado está en el listado
+                    foreach($pluginlist[$plugin] as $kLink) {
+                        //Cargar los archivos correspondientes al plugin
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                            ?><script src="<?php echo public_url.$kLink; ?>"></script><?php
+                        }
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                            ?><link href="<?php echo public_url.$kLink; ?>" rel="stylesheet"><?php
+                        }
+                    }
+                    
+                } else if (strstr($plugin, '/')) {
+                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                        ?><script src="<?php echo public_url.$plugin; ?>"></script><?php
+                    }
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                        ?><link href="<?php echo public_url.$plugin; ?>" rel="stylesheet"><?php
+                    }
                 }
             }
         }
+        
         return ob_get_clean();
     }
 
@@ -123,6 +161,44 @@ class utils {
             }
         }
         
+    }
+
+    static function dtBuildDataFromConfig($columns, $data) {
+        return [
+            'data' => array_map(function($row) use ($columns) { 
+                $return = [];
+                foreach ($columns as $column) {
+                    if ($column['data'] && property_exists($row, $column['data'])) {
+                        if (isset($column['format'])) {
+                            $return[$column['data']] = $column['format']($row->{$column['data']});
+                        // } else if (is_array($row->{$column['data']})) {
+                        //     $return[$column['data']] = count($row->{$column['data']});
+                        } else {
+                            $return[$column['data']] = $row->{$column['data']};
+                        }
+                    } else {
+                        $return[$column['data']] = null;
+                    }
+                }
+                return $return;
+            }, $data)
+        ];
+    }
+
+    static function getNewIncrementalID($column, $data) {
+        $newID = 0;
+        foreach ($data as $row) {
+            //Convertir arreglo a objeto (si es que)
+            if (is_array($row)) $row = (object)$row;
+            //Pisar newid si el id de la fila es más alto
+            if ($row->{$column} > $newID) {
+                $newID = $row->{$column};
+            }
+        }
+        //Sumar 1 al id más alto
+        $newID++;
+        //Retornar ID nuevo
+        return $newID;
     }
 
     static function startsWith($haystack, $needle) {

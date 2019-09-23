@@ -2,22 +2,28 @@
 
 class database {
 
-    function __construct() {
-        $this->host = "108.167.181.244";
-        $this->database = "enzarro_wod";
-        $this->user = "enzarro_wodadmin";
-        $this->password = "qazwsx.01";
-        $this->conn = $this->db_connect() or die ("No fue posible connectar con la base de datos -> ".$this->database);
-        $this->query("SET CLIENT_ENCODING = 'UTF8';");
+    function __construct($data = null) {
+        if ($data) {
+            $this->host = $data->host;
+            $this->port = $data->port;
+            $this->database = $data->name;
+            $this->user = $data->user;
+            $this->password = $data->pass;
+            $this->db_connect();
+        }
     }
 
     // Este método permite crear y abrir una conexi�n con PostgreSQL.
     function db_connect() {
-        if ($conn = pg_connect("host=$this->host dbname=$this->database user=$this->user password=$this->password")) {
-            return $conn;
+        ob_start();
+        if ($conn = pg_connect("host=$this->host port=$this->port dbname=$this->database user=$this->user password=$this->password")) {
+            $this->conn = $conn;
+            $this->query("SET CLIENT_ENCODING = 'UTF8';");
+            return $this->conn;
         }
         else {
-            return false;
+            $this->conn = ob_get_clean();
+            return $this->conn;
         }
     }
 

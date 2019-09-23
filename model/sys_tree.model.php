@@ -1,6 +1,61 @@
 <?php
 
-class sys_config_model {
+class sys_tree_model {
+
+    function __construct() {
+        if (file_exists(base."/tree.json")) {
+            $this->tree = json_decode(file_get_contents(base."/tree.json"));
+        }
+        if (!isset($this->tree)) {
+            $this->tree = [];
+        }
+    }
+
+    function list() {
+        if (isset($_POST["config"]) && $_POST["config"]) {
+            $targets = 0;
+            return [[
+				'targets' => $targets++,
+                'title' => 'ID',
+                'visible' => false
+            ], [
+                'targets' => $targets++,
+				'title' => 'Padre'
+			], [
+                'targets' => $targets++,
+                'title' => 'Texto'
+            ], [
+                'targets' => $targets++,
+                'title' => 'Icono'
+            ], [
+                'targets' => $targets++,
+                'title' => 'Función'
+            ], [
+                'targets' => $targets++,
+                'title' => 'Acciones',
+                'data' => null,
+                'searchable' => false,
+                'orderable' => false,
+                'width' => '100px',
+                'defaultContent' => 
+                    '<div class="btn-group btn-group" role="group" style="width: auto;">
+                        <button class="btn btn-success main-edit" title="Editar registro" type="button"><span aria-hidden="true" class="fa fa-pencil"></span></button>
+                    </div>'
+            ]];
+        } else {
+            return [
+                'data' => array_map(function($resource) {
+                    return [
+						$resource->id,
+						$resource->parent_id,
+                        $resource->texto,
+                        $resource->icono,
+                        $resource->funcion
+                    ];
+                }, $this->tree)
+            ];
+        }
+    }
 
     //User
     function setUser($data) {
@@ -14,7 +69,6 @@ class sys_config_model {
     function setDB($data) {
         global $config;
         $config->database->host = $data->host;
-        $config->database->port = $data->port;
         $config->database->name = $data->name;
         $config->database->user = $data->user;
         $config->database->pass = $data->pass;

@@ -25,6 +25,7 @@ class FormItem {
 	private $addons;
 	private $selectOptionsTemp;
 	
+	private $validTypes = ["text", "select", "search", "textarea", "static", "checkbox", "password", "table"];
 	private $excludeData = ['title', 'style', 'class', 'disabled'];
 	
 	public function __construct($data = null, $common = null) {
@@ -61,7 +62,7 @@ class FormItem {
 				if (in_array($param, $validParams)) {
 					switch ($param) {
 						case 'type':
-							$this->setType($data[$param], isset($data['type-params'])?:null);
+							$this->setType($data[$param], isset($data['type-params'])?$data['type-params']:null);
 							break;
 						case 'label':
 							$this->label = $data[$param];
@@ -100,7 +101,7 @@ class FormItem {
 	}
 	
 	public function build() {
-		if ($this->type == "text" || $this->type == "select" || $this->type == "search" || $this->type == "textarea" || $this->type == "static" || $this->type == "checkbox" || $this->type == "password") {
+		if (in_array($this->type, $this->validTypes)) {
 			return $this->buildItem();
 		} else {
 			return "false";
@@ -117,19 +118,25 @@ class FormItem {
 	
 	public function setType($type, $params = null) {
 		//Tipo
-		if ($type == "text" || $type == "select" || $type == "search" || $type == "textarea" || $type == "static" || $type == "checkbox" || $type == "password") {
+		if (in_array($type, $this->validTypes)) {
 			$this->type = $type;
 		}
 		//Parametros
 		if (!is_null($params)) {
-			foreach($params as $key => &$param) {
-				//Parametros Select
-				if ($type == "select" && ($key == "table" || $key == "id" || $key == "text" || $key == "id-alias" || $key == "text-alias" || $key == "where" || $key == "includeNone" || $key == "data")) {
-					$this->params[$key] = $param;
-				} else {
-					unset($param);
+			if ($type == "table") {
+				$this->params['config'] = $params['config'];
+				$this->params['empty'] = $params['empty'];
+			} else {
+				foreach($params as $key => &$param) {
+					//Parametros Select
+					if ($type == "select" && ($key == "table" || $key == "id" || $key == "text" || $key == "id-alias" || $key == "text-alias" || $key == "where" || $key == "includeNone" || $key == "data")) {
+						$this->params[$key] = $param;
+					} else {
+						unset($param);
+					}
 				}
 			}
+			
 		}
 	}
 	
@@ -206,6 +213,19 @@ class FormItem {
 		
 		//Start build
 		ob_start(); ?>
+
+		<?php if ($this->type == "table"): ?>
+		<div class="form-group col-sm-12">
+			<h3><?=$this->label?></h3>
+			<?=$this->buildTable([
+				'properties' => $properties,
+				'name' => $name,
+				'value' => $this->value,
+				'config' => [],
+				'empty' => []
+			])?>
+		</div>
+		<?php return ob_get_clean(); endif; ?>
 		
 		<?php if ($this->wrap): //Start Wrap ?>
 		
@@ -478,6 +498,22 @@ class FormItem {
 			?></form><?php
 		}
 		return ob_get_clean();
+	}
+
+	/**
+	 * name, value, config, empty
+	 */
+	function buildTable(array $data) {
+		extract($data);
+		ob_start(); ?>
+		<div id="<?=$name?>" <?=$properties?>>
+            <textarea name="<?=$name?>" id="data" style="display: none;"><?php echo json_encode($value, JSON_PRETTY_PRINT); ?></textarea>
+            <pre id="config" style="display: none;"><?=json_encode($this->params['config'])?></pre>
+            <pre id="emptyrow" style="display: none;"><?=json_encode($this->params['empty'])?></pre>
+            <a class="btn btn-primary" id="agregar"><span class="glyphicon glyphicon-plus"></span> Agregar</a>
+            <table class="table table-bordered table-condensed" style="width: 100%"></table>
+        </div>
+		<?php return ob_get_clean();
 	}
 	
 }
