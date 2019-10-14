@@ -104,34 +104,5 @@
                 "attr": ""
             }
         ]
-    },
-    {
-        "name": "Servicios",
-        "table": "ts_servicios",
-        "fields": [
-            {
-                "id": 1,
-                "name": "ID",
-                "column": "id",
-                "type": "int",
-                "attr": [
-                    "primary",
-                    "autonum",
-                    "hidden"
-                ],
-                "estado": ""
-            },
-            {
-                "id": 2,
-                "name": "Nombre",
-                "column": "nombre",
-                "type": "text",
-                "attr": [
-                    "notnull"
-                ],
-                "estado": ""
-            }
-        ],
-        "id": 3
     }
 ]

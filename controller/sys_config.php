@@ -44,13 +44,22 @@ class sys_config {
     function setdb() {
         $return = [];
         if (isset($_POST["db"])) {
+            //Setear variable desde post
             $data = [];
             if (is_array($_POST["db"])) {
                 $data = (object)$_POST["db"];
             } else {
                 $data = json_decode($_POST["db"]);
             }
-            $return['swal'] = $this->model->setDB($data);
+            //Probar conexión
+            $return['swal'] = $this->model->testDB($data);
+            if ($return['swal']['type'] == 'success') {
+                //Guardar configuración
+                $return['swal'] = $this->model->setDB($data);
+                //Crear tablas
+                $this->model->createTables();
+            }
+            
         }
         echo json_encode($return);
     }
@@ -58,12 +67,14 @@ class sys_config {
     function testdb() {
         $return = [];
         if (isset($_POST["db"])) {
+            //Setear variable desde post
             $data = [];
             if (is_array($_POST["db"])) {
                 $data = (object)$_POST["db"];
             } else {
                 $data = json_decode($_POST["db"]);
             }
+            //Probar conexión
             $return['swal'] = $this->model->testDB($data);
         }
         echo json_encode($return);

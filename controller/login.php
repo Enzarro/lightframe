@@ -2,11 +2,11 @@
 
 class login {
     function __construct() {
-        //include(models.'m.login.php');
         utils::load([
-            views.'login'
+            models.get_class(),
+            views.get_class()
         ]);
-        //$this->model = new m_login();
+        $this->model = new login_model();
         $this->view = new login_view();
     }
 
@@ -14,44 +14,44 @@ class login {
         $this->view->html();
     }
 
-    function error() {
+    function error($id = 1) {
         $this->view->html([
-            'error' => true
+            'error' => $id
         ]);
     }
 
     function login() {
         global $config;
-        $returns = [
-            "swal" => [
-                "type" => "",
-                "title" => "",
-                "text" => ""
-            ]
-        ];
+        //Si usuario o password no son enviados, enviar a página de error
         if (!$_POST["username"] || !$_POST["password"]) {
-            $returns["swal"] = [
-                "type" => "",
-                "title" => "",
-                "text" => ""
-            ];
-            echo json_encode($returns);
+            header('Location: /login/error');
             return;
         }
-        //Login superuser
         if ($config && $config->superuser && ($_POST["username"] == $config->superuser->username && $_POST["password"] == $config->superuser->password)) {
-            session_start();
-            $_SESSION['key'] = true;
+            //Login admin frame
+            setcookie('token', sha1($config->superuser->username.$config->superuser->password), strtotime( '+30 days' ), "/");
             header('Location: /');
-            return;
+            exit;
+        } else {
+            //Login usuario DB
+            $userDbRes = $this->model->get([
+                'username' => $_POST["username"],
+                'password' => $_POST["password"]
+            ]);
+            if ($userDbRes) {
+                //Login user db
+                setcookie('token', $userDbRes, strtotime( '+30 days' ), "/");
+                header('Location: /');
+                exit;
+            }
         }
         header('Location: /login/error');
-        return;
+        exit;
     }
 
     function logout() {
-        session_start();
-        session_destroy();
+        unset($_COOKIE['token']);
+        setcookie('token', null, -1, '/');
         header('Location: /');
         return;
     }

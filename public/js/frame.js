@@ -24,27 +24,31 @@ $(document).ready(function() {
 });
 
 function formToObject(form) {
-	//Object
-	// var object = formArrayToObject($(form).serializeArray());
-	var object = {};
-	$(form).find('*[name]').each(function() {
-		object[$(this).attr('name')] = $(this).val()?$(this).val():null;
-	});
-	//Datatables array to textarea 
-	$(form).find('*[data-fitype="dtable"]').each(function() {
-		var data = $(this).find("table").DataTable().data().toArray();
-		data = data.map(function(row) {
-			let obj = {};
-			for (let key of Object.keys(row)) {
-				if (key) obj[key] = row[key];
-			}
-			return obj;
-		});
-		object[$(this).attr('id')] = data;
-		// $(this).find("#data").val(JSON.stringify($(this).find("table").DataTable().data().toArray()));
-	});
-	return object;
-	// return formArrayToObject($(form).serializeArray());
+    //Object
+    // var object = formArrayToObject($(form).serializeArray());
+    var object = {};
+    $(form).find('*[name]').each(function() {
+        if ($(this).attr('type') == 'checkbox') {
+            object[$(this).attr('name')] = $(this).is(":checked")?1:0;
+        } else {
+            object[$(this).attr('name')] = $(this).val()?$(this).val():null;
+        }
+    });
+    //Datatables array to textarea 
+    $(form).find('*[data-fitype="dtable"]').each(function() {
+        var data = $(this).find("table").DataTable().data().toArray();
+        data = data.map(function(row) {
+            let obj = {};
+            for (let key of Object.keys(row)) {
+                if (key) obj[key] = row[key];
+            }
+            return obj;
+        });
+        object[$(this).attr('id')] = data;
+        // $(this).find("#data").val(JSON.stringify($(this).find("table").DataTable().data().toArray()));
+    });
+    return object;
+    // return formArrayToObject($(form).serializeArray());
 }
 
 function formArrayToObject(array) {

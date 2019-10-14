@@ -15,8 +15,8 @@ class sys_grid {
         $this->frame_view->main([
             'menu' => get_class(),
             'css' => ['datatables', 'datatables-select', 'datetimepicker', 'bootstrap-select'],
-            'js' => ['datatables', 'datatables-select', 'datetimepicker', 'bootstrap-select', '/js/sys_grid.js'],
-            'concatPlugins' => true,
+            'js' => ['datatables', 'datatables-select', 'datetimepicker', 'bootstrap-select', '/js/'.get_class().'.js'],
+            'concatPlugins' => false,
             'body' => [
                 'title' => 'Grillas',
                 'subtitle' => 'Listado de grillas',
@@ -36,13 +36,11 @@ class sys_grid {
             $data = $this->model->get($_POST["id"]);
             echo $this->view->form($data);
         }
-        
     }
 
-    function get() {
-
-        //Llamada al modelo, retorno de JSON con resultado
-        echo json_encode($_COOKIE);
+    function consolidate() {
+        //Consolidar tabla seleccionada
+        echo json_encode($this->model->consolidate($_POST['id']));
     }
 
     function set() {
@@ -52,5 +50,9 @@ class sys_grid {
 
     function delete() {
         echo json_encode($this->model->delete($_POST['list']));
+    }
+
+    function test() {
+        echo "hola mundo";
     }
 }

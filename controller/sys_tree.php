@@ -14,8 +14,8 @@ class sys_tree {
     function main() {
         $this->frame_view->main([
             'menu' => get_class(),
-            'css' => ['datatables'],
-            'js' => ['datatables', '/js/sys_tree.js'],
+            'css' => ['datatables', 'datatables-select', 'datetimepicker', 'bootstrap-select'],
+            'js' => ['datatables', 'datatables-select', 'datetimepicker', 'bootstrap-select', '/js/sys_tree.js'],
             'body' => [
                 'title' => 'Árbol de recursos',
                 'subtitle' => 'Parametrización de estructura de menús',
@@ -28,75 +28,21 @@ class sys_tree {
         echo json_encode($this->model->list());
     }
 
-    //User
-    function setuser() {
-        $return = [];
-        if (isset($_POST["user"])) {
-            $data = [];
-            if (is_array($_POST["user"])) {
-                $data = (object)$_POST["user"];
-            } else {
-                $data = json_decode($_POST["user"]);
-            }
-            $return['swal'] = $this->model->setUser($data);
+    function form() {
+        if (!isset($_POST["id"])) {
+            echo $this->view->form();
+        } else {
+            $data = $this->model->get($_POST["id"]);
+            echo $this->view->form($data);
         }
-        echo json_encode($return);
     }
 
-    //DB
-    function setdb() {
-        $return = [];
-        if (isset($_POST["db"])) {
-            $data = [];
-            if (is_array($_POST["db"])) {
-                $data = (object)$_POST["db"];
-            } else {
-                $data = json_decode($_POST["db"]);
-            }
-            $return['swal'] = $this->model->setDB($data);
-        }
-        echo json_encode($return);
+    function set() {
+        echo json_encode($this->model->set($_POST));
     }
 
-    function testdb() {
-        $return = [];
-        if (isset($_POST["db"])) {
-            $data = [];
-            if (is_array($_POST["db"])) {
-                $data = (object)$_POST["db"];
-            } else {
-                $data = json_decode($_POST["db"]);
-            }
-            $return['swal'] = $this->model->testDB($data);
-        }
-        echo json_encode($return);
-    }
-
-    //DB
-    function setlogin() {
-        $return = [];
-        if (isset($_POST["login"])) {
-            $data = [];
-            if (is_array($_POST["login"])) {
-                $data = (object)$_POST["login"];
-            } else {
-                $data = json_decode($_POST["login"]);
-            }
-            $return['swal'] = $this->model->setLogin($data);
-        }
-        echo json_encode($return);
-    }
-
-    function testlogin() {
-        if (isset($_POST["login"])) {
-            $data = [];
-            if (is_array($_POST["login"])) {
-                $data = (object)$_POST["login"];
-            } else {
-                $data = json_decode($_POST["login"]);
-            }
-            $return['swal'] = $this->model->testLogin($data);
-        }
+    function delete() {
+        echo json_encode($this->model->delete($_POST['list']));
     }
 
 }

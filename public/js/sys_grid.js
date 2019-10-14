@@ -1,7 +1,7 @@
 var dTable, selected;
 var path = 'sys_grid';
+var primary = 'grid_id';
 var table = 'mantenedores';
-var dtSpanish;
 
 //Grid
 $.post(`${path}/list`, {
@@ -9,6 +9,8 @@ $.post(`${path}/list`, {
 }, function(columnDefs) {
     //Load DataTables
     dTable = $(`#${table}`).DataTable({
+        autoWidth: false,
+        serverSide: true,
         ajax: {
             url: `${path}/list`,
             type: 'POST',
@@ -38,7 +40,7 @@ $.post(`${path}/list`, {
 $(document).on("click", "#main-new,.main-edit", function() {
     selected = undefined;
     if ($(this).hasClass("main-edit")) {
-        selected = dTable.row($(this).closest('tr')).data()['id'];
+        selected = dTable.row($(this).closest('tr')).data()[primary];
     }
     $.post(`${path}/form`, {
         id: selected
@@ -47,6 +49,16 @@ $(document).on("click", "#main-new,.main-edit", function() {
         InitFormFields("#modal-default .modal-body");
         $("#modal-default").modal("show");
     });
+});
+
+//Consolidate
+$(document).on('click', '.main-consolidate', function() {
+    selected = dTable.row($(this).closest('tr')).data()[primary];
+    $.post(`${path}/consolidate`, {
+        id: selected
+    }, function(data) {
+        swal.fire(data);
+    }, 'json');
 });
 
 //Save

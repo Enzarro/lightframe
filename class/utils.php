@@ -21,30 +21,42 @@ class utils {
                 '/bower_components/fastclick/lib/fastclick.js',
                 '/dist/js/adminlte.min.js',
                 '/bower_components/bootstrap/dist/css/bootstrap.min.css',
+                // '/dist/css/modern-AdminLTE.min.css',
                 '/dist/css/AdminLTE.min.css',
+                
                 '/dist/css/skins/_all-skins.min.css'
                 
             ],
             'frame' => [
                 'public/js/frame.js'
             ],
+            'validator' => [
+                '/bower_components/validator/validator.min.css',
+                '/bower_components/validator/validator.min.js'
+            ],
             'icons' => [
-                '/bower_components/font-awesome/css/font-awesome.min.css',
+                //'/bower_components/font-awesome/css/font-awesome.min.css',
+                '/bower_components/gs-font-awesome/css/all.min.css',
+                
+                '/bower_components/gs-foundation-icon-fonts/foundation-icons.css',
+                '/bower_components/gs-material-design-icons/material-icons.css',
+                '/bower_components/Ionicons/css/ionicons.min.css',
+                
                 '/bower_components/Ionicons/css/ionicons.min.css'
             ],
             'sweetalert' => [
                 '/bower_components/sweetalert2/sweetalert2.all.min.js'
             ],
             'autonumeric' => [
-                'core/js/autoNumeric/autoNumeric.min.js'
+                '/bower_components/autoNumeric/autoNumeric.min.js'
             ],
             'datatables' => [
                 '/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
                 '/bower_components/datatables.net/js/jquery.dataTables.min.js',
                 '/bower_components/datatables.net/spanish.js',
                 '/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
-                // 'core/bootstrap_admin/vendor/datatables-responsive/dataTables.responsive.js',
-                // 'core/bootstrap_admin/vendor/datatables-responsive/dataTables.responsive.css',
+                // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.js',
+                // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.css',
                 // 'core/bootstrap_admin/vendor/datatables/css/dataTables.bootstrap.min.css'
             ],
             'datatables-select' => [
@@ -63,10 +75,6 @@ class utils {
                 'core/js/typeahead/bootstrap3-typeahead.js',
 
             ],
-            'validator' => [
-                'core/js/validator.min.js',
-                'core/js/validator.min.css'
-            ],
             'jasny' => [
                 'core/js/upload/js/jasny-bootstrap.min.js',
                 'core/js/upload/css/jasny-bootstrap.min.css'
@@ -82,14 +90,21 @@ class utils {
             ],
             'socket' => [
                 'nodejs/public/js/socket.io.js'
+            ],
+            'icheck' => [
+                './plugins/iCheck/icheck.min.js',
+                './plugins/iCheck/all.css'
             ]
         ];
 
         ob_start();
-        //Amorphous
+        
         if ($concat) {
+            //Concat
             foreach ($plugins as $plugin) {
-                if (in_array($plugin, array_keys($pluginlist))) {
+                if (self::startsWith(ltrim($plugin), '<script') || self::startsWith(ltrim($plugin), '<style')) {
+                    echo $plugin;
+                } else if (in_array($plugin, array_keys($pluginlist))) {
                     //El plugin solicitado está en el listado
                     foreach($pluginlist[$plugin] as $kLink) {
                         //Cargar los archivos correspondientes al plugin
@@ -114,7 +129,9 @@ class utils {
         } else {
             //Classic
             foreach ($plugins as $plugin) {
-                if (in_array($plugin, array_keys($pluginlist))) {
+                if (self::startsWith(ltrim($plugin), '<script') || self::startsWith(ltrim($plugin), '<style')) {
+                    echo $plugin;
+                } else if (in_array($plugin, array_keys($pluginlist))) {
                     //El plugin solicitado está en el listado
                     foreach($pluginlist[$plugin] as $kLink) {
                         //Cargar los archivos correspondientes al plugin
@@ -150,14 +167,14 @@ class utils {
         foreach ($paths as $path) {
             //Load view
             if (self::startswith($path, views) && !self::endswith($path, '.view.php')) {
-                require($path.'.view.php');
+                require_once($path.'.view.php');
             } else
             //Load model
             if (self::startswith($path, models) && !self::endswith($path, '.model.php')) {
-                require($path.'.model.php');
+                require_once($path.'.model.php');
             } else {
                 //Load anything
-                require($path);
+                require_once($path);
             }
         }
         
@@ -237,37 +254,13 @@ class utils {
         return $result;
     }
 
-    static function get($url, $data = [], $json = false) {
-
+    function get($url, $data = [], $json = false) {
         if (!$data) {
             $data = [];
         }
-
-        //Get AJAX temp
-        /*if (isset($_SESSION["ss_cliente"])) {
-            $tempData = self::getAjaxTemp(array_replace_recursive([
-                'url' => $url,
-                'cliente_id' => $_SESSION["ss_cliente"]
-            ], $data));
-            //Return temp if exists
-            if ($tempData) {
-                return $json?json_decode($tempData, true):$tempData;
-            }
-        }*/
-
         //Query URL
         $result = file_get_contents($url);
-
-        //Set AJAX temp
-        /*if (isset($_SESSION["ss_cliente"])) {
-            self::ajaxTemp(array_replace_recursive([
-                'url' => $url,
-                'cliente_id' => $_SESSION["ss_cliente"]
-            ], $data), $result);
-        }*/
-
         return $json?json_decode($result, true):$result;
-
     }
 
     static function ajaxTemp($query, $data = null) {
@@ -308,92 +301,155 @@ class utils {
         }
     }
 
-    static function arrayToTable($params) {
-        extract($params);
-        //$table, $filter, $data, $insert = true, $delete = true
-        if (!($table || $data)) {
-            return false;
+    function arrayToTable($params) {
+        global $config;
+        $_DB = new database($config->database);
+		extract($params);
+		//$table, $key, $filter, $data, $insert = true, $delete = true, $duplicate = true
+		if (!isset($table)) {
+			return false;
+		}
+		if (!isset($insert)) {
+			$insert = true;
+		}
+		if (!isset($delete)) {
+			$delete = true;
         }
-        if (!isset($insert)) {
-            $insert = true;
-        }
-        if (!isset($delete)) {
-            $delete = true;
-        }
+        if (!isset($duplicate)) {
+			$duplicate = true;
+		}
 
-        global $_DB;
-        $columns = [];
+		
+		$columns = [];
 
-        //Add filter colums to general data
-        if (isset($filter)) {
-            $data = array_map(function($row) use ($filter) {
-                return array_replace_recursive($filter, $row);
-            }, $data);
-        }
-        
-        //Column definitions
+		//Add filter colums to general data
+		if (isset($filter)) {
+			$data = array_map(function($row) use ($filter) {
+				return array_replace_recursive($filter, $row);
+			}, $data);
+		}
+		
+		//Column definitions
         $qryCreate = "(";
-        $firstElement = reset($data);
-        if (!is_array($firstElement)) {
-            $firstElement = $data;
+        if ($columnDefs) {
+            $keys = array_keys($columnDefs);
+            $lastKey = end($keys);
+            foreach($keys as $ckey) {
+                //Tipos de datos
+                if (in_array('int', $columnDefs[$ckey])) {
+                    if (in_array('autonum', $columnDefs[$ckey])) {
+                        $qryCreate .= "{$ckey} SERIAL";
+                    } else {
+                        $qryCreate .= "{$ckey} INT";
+                    }
+                    $columns[$ckey] = 'int4';
+                } else if (in_array('varchar', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} VARCHAR(255)";
+                    $columns[$ckey] = 'varchar';
+                } else if (in_array('float', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} FLOAT";
+                    $columns[$ckey] = 'float4';
+                } else if (in_array('timestamp', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} TIMESTAMP";
+                    $columns[$ckey] = 'timestamp';
+                } else if (in_array('json', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} JSON";
+                    $columns[$ckey] = 'json';
+                }
+                //Características
+                if (in_array('primary', $columnDefs[$ckey])) {
+                    $qryCreate .= " PRIMARY KEY";
+                }
+                if (in_array('notnull', $columnDefs[$ckey])) {
+                    $qryCreate .= " NOT NULL";
+                }
+                //Coma final
+                if ($lastKey != $ckey) {
+                    $qryCreate .= ", ";
+                }
+            }
+        } else {
+            $firstElement = reset($data);
+            if (!is_array($firstElement)) {
+                $firstElement = $data;
+            }
+            $keys = array_keys($firstElement);
+            $lastKey = end($keys);
+            foreach($keys as $ckey) {
+                if (is_int($firstElement[$ckey])) {
+                    $qryCreate .= "{$ckey} int";
+                    $columns[$ckey] = 'int4';
+                } else {
+                    $qryCreate .= "{$ckey} varchar(255)";
+                    $columns[$ckey] = 'varchar';
+                }
+                if ($lastKey != $ckey) {
+                    $qryCreate .= ", ";
+                }
+            }
         }
-        $keys = array_keys($firstElement);
-        $lastKey = end($keys);
-        foreach($keys as $key) {
-            if (is_int($firstElement[$key])) {
-                $qryCreate .= "{$key} int";
-                $columns[$key] = 'int4';
-            } else {
-                $qryCreate .= "{$key} varchar(255)";
-                $columns[$key] = 'varchar';
-            }
-            if ($lastKey != $key) {
-                $qryCreate .= ", ";
-            }
-        }
-        $qryCreate .= ")";
+		$qryCreate .= ")";
 
-        $createTable = true;
-        //Check if temp table exists
-        $query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{$table}'";
-        $res = $_DB->query($query);
-        $reg = $_DB->to_object($res)->count;
+		$createTable = true;
+		//Check if temp table exists
+		$query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{$table}'";
+		$res = $_DB->query($query);
+		$reg = $_DB->to_object($res)->count;
 
-        if ($reg) {
-            //Extract columns from DB
-            $query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{$table}'";
-            $res = $_DB->query($query);
-            $dbColumns = [];
-            while ($column = $_DB->to_object($res)) {
-                $dbColumns[$column->column_name] = $column->udt_name;
-            }
-            //Compare columns
-            $comparison = array_diff_assoc($columns, $dbColumns);
-            if (!empty($comparison)) {
+		if ($reg) {
+			//Extract columns from DB
+			$query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{$table}'";
+			$res = $_DB->query($query);
+			$dbColumns = [];
+			while ($column = $_DB->to_object($res)) {
+				$dbColumns[$column->column_name] = $column->udt_name;
+			}
+			//Compare columns
+			$comparison = array_diff_assoc($columns, $dbColumns);
+			if (!empty($comparison)) {
                 $_DB->query("DROP TABLE {$table};");
+                error_log("Dropping table {$table}, comparison: ".json_encode($comparison), 0);
+			} else {
+				$createTable = false;
+			}
+
+		}
+
+		//Create table
+		if ($createTable) {
+			//Build "create table"...
+            $_DB->query("CREATE TABLE {$table} {$qryCreate}");
+            error_log("Creating table {$table}", 0);
+            error_log("CREATE TABLE {$table} {$qryCreate}");
+		} 
+
+		if ($delete) {
+            //Erase possible data with filter
+            if ($filter) {
+                $_DB->query("DELETE FROM {$table} WHERE ".$this->arrayToQuery('and', $filter));
+                error_log("Deleting filtered data", 0);
             } else {
-                $createTable = false;
+                $_DB->query("DELETE FROM {$table}");
+                error_log("Deleting data", 0);
+            }
+		}
+		
+		if ($insert) {
+            //Check if data is duplicated
+            if (!$duplicate && isset($key)) {
+                $keystoinsert = array_column($data, $key);
+                $_DB->query("DELETE FROM {$table} WHERE {$key} IN ".$this->arrayToQuery('in', $keystoinsert));
+                error_log("Deleting duplicated data: ".$this->arrayToQuery('in', $keystoinsert), 0);
             }
 
-        }
-
-        //Create table
-        if ($createTable) {
-            //Build "create table"...
-            $_DB->query("CREATE TABLE {$table} {$qryCreate}");
-        } 
-
-        if ($delete) {
-            //Erase possible data with filter
-            $_DB->query("DELETE FROM {$table} WHERE ".$this->arrayToQuery('and', $filter));
-        }
-        
-        if ($insert) {
             //Fill table with data
-            $_DB->query("INSERT INTO {$table} ".$this->multipleArrayToInsert($data));
-        }
-        
-    }
+            if (isset($data)) {
+                $_DB->query("INSERT INTO {$table} ".$this->multipleArrayToInsert($data));
+                error_log("Inserting data: ".$this->multipleArrayToInsert($data), 0);
+            }
+		}
+		
+	}
 
     static function getAjaxTemp($query) {
         global $_DB;
@@ -481,7 +537,7 @@ class utils {
             }
             //Es string (por descarte, con comillas)
             else {
-                if ($array[$key] == 'now()') {
+                if ($array[$key] == 'now()' || $array[$key] == 'DEFAULT' || utils::startsWith($array[$key], 'excluded.')) {
                     $finalString .= "$array[$key]";
                     $finalArray[] = "$array[$key]";
                 } else {

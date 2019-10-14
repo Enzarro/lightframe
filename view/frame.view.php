@@ -7,10 +7,15 @@ class frame_view {
     var $menu;
 
     function __construct($req = null) {
+        utils::load([
+            models.'frame'
+        ]);
+        $this->model = new frame_model();
+        $this->login_model = new login_model();
         $this->utils = new utils();
         //Plugins base del frame
-        $this->css = ['adminlte', 'icons'];
-        $this->js = ['jquery', 'jquery-cookie', 'adminlte', 'sweetalert', '/js/frame.js'];
+        $this->css = ['adminlte', 'icons', 'validator'];
+        $this->js = ['jquery', 'jquery-cookie', 'adminlte', 'sweetalert', 'validator', '/js/frame.js'];
     }
 
     /**
@@ -375,36 +380,35 @@ class frame_view {
             ];
         }
         extract($data);
-?>
-<div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-        <h1>
-            <?=$body['title']?>
-            <small><?=$body['subtitle']?></small>
-        </h1>
-        <!-- <ol class="breadcrumb">
-            <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li><a href="#">Tables</a></li>
-            <li class="active">Data tables</li>
-        </ol> -->
-    </section>
+        ?>
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    <?=$body['title']?>
+                    <small><?=$body['subtitle']?></small>
+                </h1>
+                <!-- <ol class="breadcrumb">
+                    <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+                    <li><a href="#">Tables</a></li>
+                    <li class="active">Data tables</li>
+                </ol> -->
+            </section>
 
-    <!-- Main content -->
-    <section class="content">
-        <?=$body['html']?>
-    </section>
-    <!-- /.content -->
-</div>
-<?php
+            <!-- Main content -->
+            <section class="content">
+                <?=$body['html']?>
+            </section>
+            <!-- /.content -->
+        </div>
+        <?php
     }
 
     function menu($data = null) { 
         global $config;
         if (!$data) {
             $data = [
-                'menu' => '',
-                'resources' => []
+                'menu' => ''
             ];
         }
         extract($data);
@@ -412,12 +416,14 @@ class frame_view {
             return (array)$row;
         }, $config->sysres);
 
-        $frameResources = $this->buildTree($sysres);
-
-        if ($resources) {
-            $userResources = $this->buildTree($resources);
+        $userData = $this->login_model->getTokenData($_COOKIE['token']);
+        if (is_object($userData)) {
+            $frameResources = [];
+            $userResources = $this->model->buildTree($this->model->getResources($userData));
+        } else if ($userData == 'admin') {
+            $frameResources = $this->model->buildTree($sysres);
+            $userResources = $this->model->buildTree($this->model->getResources($userData));
         }
-        
 
 ?>
         <aside class="main-sidebar">
@@ -435,12 +441,14 @@ class frame_view {
       </div>
 
       <ul class="sidebar-menu" data-widget="tree" data-animation-speed="250">
+        <?php if ($frameResources): ?>
         <li class="header">FRAME</li>
         <?=$this->menuItems($frameResources)?>
-
-        <?php if ($resources): ?>
+        <?php endif; ?>
+        <?php if ($userResources): ?>
         <li class="header">NAVEGACIÓN</li>
         <?=$this->menuItems($userResources)?>
+        <pre style="font-size: 5pt; font-weight: bold; display: none;"><?=json_encode($userResources, JSON_PRETTY_PRINT)?></pre>
         <?php endif; ?>
 
       </ul>
@@ -453,59 +461,28 @@ class frame_view {
     function menuItems(array $elements, $level = 1) {
         ?>
 
-        <?php foreach($elements as $element): ?>
+        <?php foreach($elements as $element): $printFlag = $this->model->isThereAnyChildActive($element); ?>
+            
+            <?php if ($printFlag): ?>
+            <li class="<?php if($this->model->isChildActive($element, $this->menu)): ?>active<?php endif; ?> <?php if (isset($element['children'])): ?>treeview<?php endif; ?>">
+                <a href="<?php if (isset($element['children'])): ?>#<?php else: echo base_url."/".$element['funcion']; endif; ?>">
+                    <i class="<?=$element['icono']?>"></i>
+                    <span><?=$element['texto']?></span>
+                    <?php if (isset($element['children'])): ?><span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span><?php endif; ?>
+                </a>
+                <?php if (isset($element['children'])): ?><ul class="treeview-menu">
+                    <?=$this->menuItems($element['children'], $level + 1)?>
+                </ul><?php endif; ?>
+            </li>
+            <?php endif; ?>
+            
 
-            <li class="<?php if($this->isChildActive($element, $this->menu)): ?>active<?php endif; ?> <?php if (isset($element['children'])): ?>treeview<?php endif; ?>">
-            <a href="<?php if (isset($element['children'])): ?>#<?php else: echo base_url."/".$element['funcion']; endif; ?>">
-                <i class="<?=$element['icono']?>"></i>
-                <span><?=$element['texto']?></span>
-                <?php if (isset($element['children'])): ?><span class="pull-right-container">
-                    <i class="fa fa-angle-left pull-right"></i>
-                </span><?php endif; ?>
-            </a>
-            <?php if (isset($element['children'])): ?><ul class="treeview-menu">
-                <?=$this->menuItems($element['children'], $level + 1)?>
-            </ul><?php endif; ?>
-        </li>
         <?php endforeach; ?>
         
         <?php
     }
 
-    function isChildActive($element, $search) {
-        if (!$search) {
-            return false;
-        }
-        if ($element['funcion'] == $search) {
-            return true;
-        }
-        if (isset($element['children'])) {
-            foreach ($element['children'] as $child) {
-                if ($child['funcion'] == $search) {
-                    return true;
-                }
-                if (isset($child['children'])) {
-                    $this->isChildActive($child, $search);
-                }
-            }
-        } else {
-            return false;
-        }
-    }
-
-    function buildTree(array $elements, $parentId = null) {
-		$branch = array();
-
-		foreach ($elements as $element) {
-			if ($element['parent_id'] == $parentId) {
-				$children = $this->buildTree($elements, $element['id']);
-				if ($children) {
-					$element['children'] = $children;
-				}
-				$branch[] = $element;
-			}
-		}
-
-		return $branch;
-	}
+    
 }

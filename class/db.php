@@ -71,6 +71,17 @@ class database {
         }
     }
 
+    function queryToArray($sql) {
+        return $this->query_to_array($sql);
+    }
+
+    function queryToSingleVal($sql) {
+        $res = $this->queryToArray($sql);
+        if ($res) {
+            return reset($res[0]);
+        }
+    }
+
     function pgexec($sql) {
         if ($res = pg_query($this->conn,$sql)) {
             pg_close($this->conn);

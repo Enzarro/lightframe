@@ -1,4 +1,7 @@
-/public/bower_components
-/public/dist
-/public/plugins
+**/public/bower_components**
+**/public/dist**
+**/public/plugins**
+**/public/fonts**
+**/public/webfonts**
+/public/config.json
 php_errors.log

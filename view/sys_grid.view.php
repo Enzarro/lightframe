@@ -8,39 +8,6 @@ class sys_grid_view {
         ]);
         $this->model = new sys_grid_model();
         $this->FormItem = new FormItem();
-        $this->form = [
-            'formid' => 'form-grid',
-            'roweven' => true,
-            'common' => [
-                'horizontal' => true,
-                'size' => 'sm',
-                'stack' => true
-            ],
-            'fields' => [[
-                'label' => 'Nombre',
-                'name' => 'name',
-                'type' => 'text'
-            ], [
-                'label' => 'Tabla',
-                'name' => 'table',
-                'type' => 'text'
-            ],
-            [
-                'label' => 'Campos',
-                'name' => 'fields',
-                'type' => 'table',
-                'type-params' => [
-                    'config' => $this->model->getCamposDTConfig(),
-                    'empty' => $this->model->getCamposDTEmptyRow()
-                ],
-                'prop' => [
-                    'data-fitype="dtable"' => true,
-                    "data-fisettings='".json_encode([
-                        "liveSearch" => true
-                    ])."'" => true
-                ]
-            ]]
-        ];
     }
 
     function html() {
@@ -86,30 +53,44 @@ class sys_grid_view {
     }
 
     function form($data = null) {
-        $form = $this->form;
+        $form = [
+            'formid' => 'form-grid',
+            'roweven' => true,
+            'common' => [
+                'horizontal' => true,
+                'size' => 'sm',
+                'stack' => true
+            ],
+            'fields' => [[
+                'label' => 'Nombre',
+                'name' => 'name',
+                'type' => 'text'
+            ], [
+                'label' => 'Tabla',
+                'name' => 'table',
+                'type' => 'text'
+            ],
+            [
+                'label' => 'Campos',
+                'name' => 'fields',
+                'type' => 'table',
+                'type-params' => [
+                    'config' => $this->model->getCamposDTConfig(),
+                    'empty' => $this->model->getCamposDTEmptyRow()
+                ],
+                'prop' => [
+                    'data-fitype="dtable"' => true,
+                    "data-fisettings='".json_encode([
+                        "liveSearch" => true
+                    ])."'" => true
+                ]
+            ]]
+        ];
         if ($data) {
-            //Llenar los "value" de los FI del form desde la data recibida
-            foreach (array_keys($form['fields']) as $key) {
-                if ($form['fields'][$key]['name'] == 'name') {
-                    $form['fields'][$key]['value'] = $data->name;
-                } else if ($form['fields'][$key]['name'] == 'table') {
-                    $form['fields'][$key]['value'] = $data->table;
-                } else if ($form['fields'][$key]['name'] == 'fields') {
-                    $form['fields'][$key]['value'] = utils::dtBuildDataFromConfig($this->model->getCamposDTConfig(), $data->fields)['data'];
-                    // $form['fields'][$key]['value'] = array_map(function($row) {
-                    //     return [
-                    //         'id' => $row->id,
-                    //         'name' => $row->name,
-                    //         'column' => $row->column,
-                    //         'type' => $row->type,
-                    //         'primary' => isset($row->primary)?$row->primary:null
-                    //     ];
-                    // }, $data->fields);
-                }
-            }
+            $data->fields = utils::dtBuildDataFromConfig($this->model->getCamposDTConfig(), $data->fields)['data'];
         }
         ob_start(); ?>
-        <?=$this->FormItem->buildArray($form)?>
+        <?=$this->FormItem->buildArray($form, $data)?>
         <?php return ob_get_clean();
     }
 }

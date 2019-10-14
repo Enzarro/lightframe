@@ -55,6 +55,108 @@ class sys_config_model {
         $data->testpass;
     }
 
+    //Create tables
+    function createTables() {
+        $utils = new utils();
+        
+        //:: Control de Accesos ::
+        //Recursos
+        $utils->arrayToTable([
+            'table' => 'recursos',
+            'columnDefs' => [
+                'recurso_id' => ['int', 'autonum', 'primary', 'notnull'],
+                'parent_id' => ['int'],
+                'texto' => ['varchar'],
+                'icono' => ['varchar'],
+                'funcion' => ['varchar'],
+                'grid_id' => ['int'],
+                'eliminado' => ['int']
+            ],
+            'delete' => false,
+            'duplicate' => false
+        ]);
+        //Usuarios
+        $utils->arrayToTable([
+            'table' => 'usuarios',
+            'columnDefs' => [
+                'usuario_id' => ['int', 'autonum', 'primary', 'notnull'],
+                'username' => ['varchar', 'notnull'],
+                'password' => ['varchar', 'notnull'],
+                'nombre' => ['varchar'],
+                'correo' => ['varchar'],
+                'avatar' => ['varchar'],
+                'eliminado' => ['int']
+            ],
+            'data' => [
+                [
+                    'username' => 'asd',
+                    'password' => 'zxc'
+                ]
+            ],
+            'delete' => false,
+            'duplicate' => false
+        ]);
+        //Tokens
+        $utils->arrayToTable([
+            'table' => 'tokens',
+            'columnDefs' => [
+                'usuario_id' => ['int', 'primary', 'notnull'],
+                'token' => ['varchar', 'notnull'],
+                'created_at' => ['timestamp', 'notnull']
+            ],
+            'delete' => false,
+            'duplicate' => false
+        ]);
+        //Permisos
+        $utils->arrayToTable([
+            'table' => 'permisos',
+            'columnDefs' => [
+                'usuario_id' => ['int'],
+                'recurso_id' => ['int'],
+                'permisos_obj' => ['json']
+            ],
+            'delete' => false,
+            'duplicate' => false
+        ]);
+
+        //:: Mantenedores ::
+        //Grids
+        $utils->arrayToTable([
+            'table' => 'grids',
+            'columnDefs' => [
+                'grid_id' => ['int', 'autonum', 'primary', 'notnull'],
+                'name' => ['varchar'],
+                'table_name' => ['varchar']
+            ],
+            'delete' => false,
+            'duplicate' => false
+        ]);
+        //Grids Fields
+        $utils->arrayToTable([
+            'table' => 'grids_fields',
+            'columnDefs' => [
+                'field_id' => ['int', 'autonum', 'primary', 'notnull'],
+                'grid_id' => ['int'],
+                'name' => ['varchar'],
+                'column_name' => ['varchar'],
+                'type' => ['varchar'],
+                'origin' => ['int']
+            ],
+            'delete' => false,
+            'duplicate' => false
+        ]);
+        //Fields Attrs
+        $utils->arrayToTable([
+            'table' => 'fields_attrs',
+            'columnDefs' => [
+                'field_id' => ['int'],
+                'attr' => ['varchar']
+            ],
+            'delete' => false,
+            'duplicate' => false
+        ]);
+    }
+
     //Save to file / Response
     function setFile($config) {
         if (!file_put_contents(root."/config.json", json_encode($config, JSON_PRETTY_PRINT))) {

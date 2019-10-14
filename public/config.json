@@ -5,12 +5,12 @@
     },
     "global": {
         "path": "",
-        "public_url": "http:\/\/localhost\/public"
+        "public_url": "http:\/\/localhost"
     },
     "database": {
         "host": "bconnectdeveast.cg80chltwwcq.us-east-1.rds.amazonaws.com",
         "port": "5432",
-        "name": "bconnect_dev",
+        "name": "datcapital",
         "user": "postgres",
         "pass": "dfxkacv.324",
         "type": "pgsql"

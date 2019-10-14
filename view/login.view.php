@@ -7,7 +7,7 @@ class login_view {
     function html($data = null) {
         if (!$data) {
             $data = [
-                'error' => false
+                'error' => 0
             ];
         }
         extract($data);
@@ -44,7 +44,7 @@ class login_view {
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="<?=public_url?>/index2.html"><b>DAT</b>Capital</a>
+    <a href="http://www.datcapital.cl/"><b>DAT</b>Capital</a>
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">
@@ -59,7 +59,9 @@ class login_view {
         <input type="password" name="password" class="form-control" placeholder="Password">
         <span class="glyphicon glyphicon-lock form-control-feedback"></span>
       </div>
-    <?php if($error): ?><p class="login-box-msg" style="color: red;">Nombre de usuario o contraseña inválidos</p><?php endif; ?>
+    <?php if($error == 1): ?><p class="login-box-msg" style="color: red;">Nombre de usuario o contraseña inválidos.</p><?php endif; ?>
+    <?php if($error == 2): ?><p class="login-box-msg" style="color: red;">Sesión caducada: vuelva a ingresar.</p><?php endif; ?>
+    <?php if($error == 3): ?><p class="login-box-msg" style="color: red;">El usuario no tiene permisos asignados, contacte a su administrador.</p><?php endif; ?>
       <div class="row">
         <div class="col-xs-8">
           <div class="checkbox icheck">

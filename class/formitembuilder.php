@@ -466,7 +466,7 @@ class FormItem {
 	 * @param array:?common
 	 * @param bool:?roweven
 	 */
-	public function buildArray($data) {
+	public function buildArray($data, $values = null) {
 		if (!$data) {
 			return "undefined";
 		} else {
@@ -482,6 +482,15 @@ class FormItem {
 		}
 		$i = 0;
 		foreach($fields as $resource) {
+			if ($values) {
+				//Setear valor a elemento
+				if (is_object($values)) {
+					$values = (array)$values;
+				}
+				if (isset($values[$resource['name']])) {
+					$resource['value'] = $values[$resource['name']];
+				}
+			}
 			if ($roweven && $i%2==0) {
 				?><div class="row"><?php
 			}
