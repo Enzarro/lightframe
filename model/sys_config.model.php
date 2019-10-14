@@ -70,6 +70,7 @@ class sys_config_model {
                 'icono' => ['varchar'],
                 'funcion' => ['varchar'],
                 'grid_id' => ['int'],
+                'permisos_obj' => ['json'],
                 'eliminado' => ['int']
             ],
             'delete' => false,
