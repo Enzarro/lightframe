@@ -1,26 +1,74 @@
-$(document).ready(function() {
-	
-	//Set WebSocket
-	/*var socket = io.connect('http://'+window.location.host+':8082', {
-	    reconnection: true,
-	    reconnectionDelay: 1000,
-	    reconnectionDelayMax : 5000,
-	    reconnectionAttempts: 99999
-	});
-	socket.on('connect', function(data){
-		socket.emit('remote');
-	});
-	socket.on('sess', function(data) {
-		for(let key in data) {
-			//Triggear eventos de jQuery por cada llave del objeto recibido por el socket
-			$(document).trigger('sess:'+key, data[key]);
-		}
+var btn_save_layer = "<i class='fas fa-spinner fa-spin'></i> Guardando...";
+var socket;
+
+if (socket_enabled) {
+	socket = io.connect(socket_address, {
+		query: `system=datcapital&token=${$.cookie('token')}`
 	});
 
-	//$('#login_cliente option[value="' + $("#indClienteFrm").val() + '"]').prop('selected', true);
-	$('#login_cliente').selectpicker('val', $("#indClienteFrm").val());
-	$('#login_cliente').on('change', function() { if($(this).find(":checked").val() != "") enter_log($(this).find(":checked").val()); });
-    */
+	socket.on('sql-error', function(data) {
+		console.error(data.error);
+		console.error(data.query);
+	});
+}
+
+if (dbstatus && $("#client-selector").length) {
+	if (!(sessionStorage.getItem("client") == undefined || sessionStorage.getItem("client") == '')) {
+        $("#client-selector").val(sessionStorage.getItem("client"));
+	} else {
+		var clientCount = $("#client-selector").find("option").filter(function() {
+			return $(this).attr("value") > 0;
+		}).length;
+		if (clientCount > 1) {
+			var clientPopup = $("#client-selector").clone();
+			clientPopup.attr('id', 'client-selector-onempty');
+			
+			swal.fire({
+				type: 'warning',
+				title: 'Bienvenido',
+				html: clientPopup,
+				showConfirmButton: false,
+				showCloseButton: true,
+				allowOutsideClick: false
+			}).then((result) => {
+				if (result.dismiss == 'close') {
+					sessionStorage.setItem("client", '');
+				}
+			});
+	
+			$("#client-selector-onempty").focus();
+	
+			$("#client-selector-onempty").selectpicker({
+				liveSearch: true
+			});
+			$("#client-selector-onempty").change(function() {
+				$("#client-selector").selectpicker('val', $(this).val());
+				sessionStorage.setItem("client", $(this).val());
+				swal.close();
+			})
+		} else {
+			var firstClientVal = $("#client-selector").find("option").filter(function() {
+				return $(this).attr("value") > 0;
+			}).first().val();
+			$("#client-selector").val(firstClientVal);
+			sessionStorage.setItem("client", firstClientVal);
+		}
+	}
+}
+
+
+$("#client-selector").selectpicker({
+	liveSearch: true,
+	dropdownAlignRight: true
+});
+
+$("#client-selector").change(function() {
+	sessionStorage.setItem("client", $(this).val());
+	$(document).trigger('client-change');
+});
+
+$(document).ready(function() {
+	$('html').show();
 });
 
 function formToObject(form) {
@@ -49,6 +97,35 @@ function formToObject(form) {
     });
     return object;
     // return formArrayToObject($(form).serializeArray());
+}
+
+function validateForm(form) {
+	if ($(form).validator('validate').has('.has-error').length === 0) {
+		if ($(form).find('*[data-fitype="dtable"]').length) {
+			var tables = false;
+			$(form).find('*[data-fitype="dtable"]').each(function() {
+				if (validateTable($(this).find('table'))) {
+					tables = true;
+				}
+			});
+			if (tables) {
+				swal.fire({
+					text: "Hay cambios sin confirmar en subtablas.",
+					type: "warning"
+				});
+			} else {
+				return true;
+			}
+		} else {
+			return true;
+		}
+		
+	} else {
+		swal.fire({
+			text: "Debe completar todos los campos obligatorios.",
+			type: "warning"
+		});
+	}
 }
 
 function formArrayToObject(array) {
@@ -100,8 +177,8 @@ function dtInit(domid, opts) {
 	dtObj.on('preInit.dt', function() {
         var tableID = $(this).attr('id');
         //Format search box
-        $(`#${tableID}_filter`).find("input").wrap("<div class='input-group'></div>");
-        $(`#${tableID}_filter`).find(".input-group").prepend("<span class='input-group-addon'><span class='glyphicon glyphicon-search text-center' aria-hidden='true'></span></span>");
+        $(`#${tableID}_filter`).find("input").wrap(`<div class='input-group'></div>`);
+        $(`#${tableID}_filter`).find(".input-group").prepend(`<span class='input-group-addon'><span class='glyphicon glyphicon-search text-center' aria-hidden='true'></span></span>`);
         $(`#${tableID}_filter`).find("input").css("margin", "0");
     }).DataTable({
 		paging: opts.paging,
@@ -110,14 +187,14 @@ function dtInit(domid, opts) {
         autoWidth: opts.autoWidth,
         bInfo: opts.bInfo,
 		data: JSON.parse($(domid).find('#data').val()),
-		columnDefs: JSON.parse($(domid).find("#config").html()),
+		columnDefs: JSON.parse($(domid).find("#config").text()),
 		drawCallback: function(settings) {
 			dtEditDrawCallback(dtObj, settings);
 		},
 		language: dtSpanish
 	});
 	$(domid).find("#agregar").click(function() {
-		dtObj.DataTable().row.add(JSON.parse($(domid).find("#emptyrow").html()));
+		dtObj.DataTable().row.add(JSON.parse($(domid).find("#emptyrow").text()));
 		dtObj.DataTable().draw();
 	});
 	return dtObj;
@@ -127,128 +204,207 @@ function dtColumnsToInputs(columns, row, extract = false) {
 	var rowObj = row.node();
 	var colsResult = {};
 	for (let key in columns) {
-		//RUT
-		if (columns[key].editType == 'rut') {
+		var res = dtInitInput({
+			columns: columns, 
+			row: row, 
+			cell: columns[key],
+			extract: extract
+		});
+		if (res !== undefined) {
 			if (extract) {
-				colsResult[columns[key].data] = $(columns[key].cellNode).find('input').val();
+				colsResult[columns[key].data] = res;
 			} else {
-				colsResult[key] = $(`<input type="text" class="form-control" style="width: 100%;"></input>`);
-				colsResult[key].val(columns[key].value);
-				
-				colsResult[key].keyup(function() {
-					if ($(this).val().length > 1) {
-						$(this).val(formatRut($(this).val()));
-						if (validateRut($(this).val())) {
-							$(this).css({'border-color': 'forestgreen'});
-						} else {
-							$(this).css({'border-color': '#a94442'});
+				colsResult[key] = res;
+			}
+		}
+		
+	}
+	// console.log(colsResult);
+	return colsResult;
+}
+
+function dtInitInput(data) {
+	var rowObj = data.row.node();
+	//RUT
+	var input;
+	if (data.cell.editType == 'rut') {
+		if (data.extract) {
+			return $(data.cell.cellNode).find('input').val();
+		} else {
+			input = $(`<input name="${data.cell.data}" type="text" class="form-control" style="width: 100%;">`);
+			input.val(data.cell.value);
+			
+			input.keyup(function() {
+				if ($(this).val().length > 1) {
+					$(this).val(formatRut($(this).val()));
+					if (validateRut($(this).val())) {
+						$(this).css({'border-color': 'forestgreen'});
+					} else {
+						$(this).css({'border-color': '#a94442'});
+					}
+				} else {
+					$(this).css({'border-color': ''});
+				}
+			}).keyup();
+			//input.autoNumeric();
+			$(data.cell.cellNode).empty().append(input);
+		}
+	}
+	//ANUMERIC
+	if (data.cell.editType == 'anumeric') {
+		if (data.extract) {
+			colsResult[data.cell.data] = $(data.cell.cellNode).find('input').autoNumeric('get');
+		} else {
+			input = $(`<input name="${data.cell.data}" type="text" class="form-control" style="width: 100%;">`);
+			input.val(data.cell.value);
+			if (data.cell.editConfig !== undefined) {
+				input.autoNumeric(data.cell.editConfig);
+			} else {
+				input.autoNumeric();
+			}
+			input.on('keypress',function(e) {
+				if(e.which == 13) {
+					$(rowObj).find('.apply').click();
+				}
+			});
+			$(data.cell.cellNode).empty().append(input);
+		}
+	}
+	//STRING
+	if (data.cell.editType == 'string') {
+		if (data.extract) {
+			return $(data.cell.cellNode).find('input').val();
+		} else {
+			input = $(`<input name="${data.cell.data}" type="text" class="form-control" style="width: 100%;">`);
+			input.val(data.cell.value);
+			input.on('keypress',function(e) {
+				if(e.which == 13) {
+					$(rowObj).find('.apply').click();
+				}
+			});
+			input.on('keyup', function(e) {
+				if(e.which == 27) {
+					$(rowObj).find('.undo').click();
+				}
+			});
+			$(data.cell.cellNode).empty().append(input);
+		}
+	}
+	//DATE
+	if (data.cell.editType == 'dtpicker') {
+		if (data.extract) {
+			return $(data.cell.cellNode).find('input').val();
+		} else {
+			input = $(`<input name="${data.cell.data}" type="text" class="form-control" style="width: 100%;">`);
+			input.val(data.cell.value);
+			if (data.cell.editConfig !== undefined) {
+				input.datetimepicker(data.cell.editConfig);
+			} else {
+				input.datetimepicker();
+			}
+			input.on('keypress',function(e) {
+				if(e.which == 13) {
+					$(rowObj).find('.apply').click();
+				}
+			});
+			$(data.cell.cellNode).empty().append(input);
+		}
+	}
+	//SELECT
+	if (data.cell.editType == 'select' | data.cell.editType == 'bselect' | data.cell.editType == 'eselect') {
+		if (data.extract) {
+			return $(data.cell.cellNode).find('select').val();
+			// console.log(colsResult[cell.data]);
+		} else {
+			input = $(`<select name="${data.cell.data}" class="form-control"></select>`);
+			if (data.cell.editData !== undefined) {
+				input.html(buildSelectValuesFIObject(data.cell.editData));
+			}
+			//Multiple
+			if (data.cell.editConfig !== undefined) {
+				if (data.cell.editConfig.multiple !== undefined && data.cell.editConfig.multiple == true) {
+					input.attr('multiple', true);
+				}
+			}
+			//Setear valor
+			input.val(data.cell.value);
+			$(data.cell.cellNode).empty().append(input);
+			//BSELECT
+			if (data.cell.editType == 'bselect') {
+				if (data.cell.editConfig !== undefined) {
+					input.selectpicker(data.cell.editConfig);
+				} else {
+					input.selectpicker();
+				}
+			}
+			//ESELECT -- Edit Select
+			if (data.cell.editType == 'eselect') {
+				var button = $(`<div class="input-group-append">
+					<button type="button" class="btn btn-success"><i class="fa fa-cog"></i></button>
+				</div>`);
+				button.click(function() {
+
+					swal.fire({
+						html: 'test',
+						showCancelButton: true,
+						confirmButtonText: 'Ok',
+						cancelButtonText: 'Cancelar'
+					}).then((result) => {
+						if (result.value) {
+							console.log(formToObject("#swal2-content form"));
 						}
-					} else {
-						$(this).css({'border-color': ''});
+					});
+					
+					var rowData = data.row.data();
+					var html = $(`<form></form>`);
+					for (let key in data.columns) {
+						//Si columna recorrida está en arreglo de opción
+						if (data.cell.editConfig.efields[input.val()].indexOf(data.columns[key].data) != -1) {
+							// var swalInput = dtInitInput()
+							var frmGrp = $(`<div class="form-group">
+								<label for="${data.columns[key].data}">${data.columns[key].title}</label>
+							</div>`);
+
+							// var newitem = dtInitInput({
+							// 	columns: data.columns,
+							// 	row: data.row,
+							// 	cell: data.columns[key]
+							// });
+							// console.log(data.columns[key])
+							// frmGrp.append(newitem.clone())
+
+							frmGrp.append($(data.columns[key].cellNode).clone(true))
+							
+
+							html.append(frmGrp)
+						}
 					}
-				}).keyup();
-				//colsResult[key].autoNumeric();
-				$(columns[key].cellNode).empty().append(colsResult[key]);
-			}
-		}
-		//ANUMERIC
-		if (columns[key].editType == 'anumeric') {
-			if (extract) {
-				colsResult[columns[key].data] = $(columns[key].cellNode).find('input').autoNumeric('get');
-			} else {
-				colsResult[key] = $(`<input type="text" class="form-control" style="width: 100%;"></input>`);
-				colsResult[key].val(columns[key].value);
-				if (columns[key].editConfig !== undefined) {
-					colsResult[key].autoNumeric(columns[key].editConfig);
-				} else {
-					colsResult[key].autoNumeric();
-				}
-				colsResult[key].on('keypress',function(e) {
-					if(e.which == 13) {
-						$(rowObj).find('.apply').click();
-					}
+
+					$('#swal2-content').empty().append(html);
+					
+					// swal.fire({
+					// 	html: `<pre>${JSON.stringify(data)}</pre>`
+					// });
 				});
-				$(columns[key].cellNode).empty().append(colsResult[key]);
-			}
-		}
-		//STRING
-		if (columns[key].editType == 'string') {
-			if (extract) {
-				colsResult[columns[key].data] = $(columns[key].cellNode).find('input').val();
-			} else {
-				colsResult[key] = $(`<input type="text" class="form-control" style="width: 100%;"></input>`);
-				colsResult[key].val(columns[key].value);
-				colsResult[key].on('keypress',function(e) {
-					if(e.which == 13) {
-						$(rowObj).find('.apply').click();
-					}
-				});
-				$(columns[key].cellNode).empty().append(colsResult[key]);
-			}
-		}
-		//DATE
-		if (columns[key].editType == 'dtpicker') {
-			if (extract) {
-				colsResult[columns[key].data] = $(columns[key].cellNode).find('input').val();
-			} else {
-				colsResult[key] = $(`<input type="text" class="form-control" style="width: 100%;"></input>`);
-				colsResult[key].val(columns[key].value);
-				if (columns[key].editConfig !== undefined) {
-					colsResult[key].datetimepicker(columns[key].editConfig);
-				} else {
-					colsResult[key].datetimepicker();
-				}
-				colsResult[key].on('keypress',function(e) {
-					if(e.which == 13) {
-						$(rowObj).find('.apply').click();
-					}
-				});
-				$(columns[key].cellNode).empty().append(colsResult[key]);
-			}
-		}
-		//SELECT
-		if (columns[key].editType == 'select' | columns[key].editType == 'bselect') {
-			if (extract) {
-				colsResult[columns[key].data] = $(columns[key].cellNode).find('select').val();
-				// console.log(colsResult[columns[key].data]);
-			} else {
-				colsResult[key] = $(`<select class="form-control" style="width: 100%;"></select>`);
-				if (columns[key].editData !== undefined) {
-					colsResult[key].html(buildSelectValuesFIObject(columns[key].editData));
-				}
-				//Multiple
-				if (columns[key].editConfig !== undefined) {
-					if (columns[key].editConfig.multiple !== undefined && columns[key].editConfig.multiple == true) {
-						colsResult[key].attr('multiple', true);
-					}
-				}
-				//Setear valor
-				colsResult[key].val(columns[key].value);
-				$(columns[key].cellNode).empty().append(colsResult[key]);
-				//BSELECT
-				if (columns[key].editType == 'bselect') {
-					if (columns[key].editConfig !== undefined) {
-						colsResult[key].selectpicker(columns[key].editConfig);
-					} else {
-						colsResult[key].selectpicker();
-					}
-				}
-			}
-		}
-		//CHECKBOX
-		if (columns[key].editType == 'checkbox') {
-			if (extract) {
-				colsResult[columns[key].data] = $(columns[key].cellNode).find('input').is(":checked");
-			} else {
-				colsResult[key] = $(`<input type="checkbox" style="width: 100%; height: 20px;"></input>`);
-				if (columns[key].value) {
-					colsResult[key].attr('checked', true);
-				}
-				$(columns[key].cellNode).empty().append(colsResult[key]);
+				
+				input.wrap(`<div class="input-group"></div>`);
+				input.closest('.input-group').append(button);
 			}
 		}
 	}
-	return colsResult;
+	//CHECKBOX
+	if (data.cell.editType == 'checkbox') {
+		if (data.extract) {
+			return $(data.cell.cellNode).find('input').is(":checked");
+		} else {
+			input = $(`<input type="checkbox" style="width: 100%; height: 20px;"></input>`);
+			if (data.cell.value) {
+				input.attr('checked', true);
+			}
+			$(data.cell.cellNode).empty().append(input);
+		}
+	}
+	return input;
 }
 
 function dtEditDrawCallback(tblObject, settings) {
@@ -272,6 +428,8 @@ function dtEditDrawCallback(tblObject, settings) {
 			for (let key in columns) {
 				if (columns[key].editType !== undefined) {
 					initColumns[key] = {
+						title: columns[key].title,
+						data: columns[key].data,
 						value: data[columns[key].data],
 						editType: columns[key].editType,
 						editConfig: columns[key].editConfig,
@@ -314,17 +472,18 @@ function dtEditDrawCallback(tblObject, settings) {
 						}
 					}
 					if (Array.isArray(data[columns[key].data])) {
-						$(actionCell).empty().append('<div style="overflow: auto; height: 30px;">'+arrText.join(', ')+'</div>');
+						$(actionCell).empty().append(`<div style="overflow: auto; height: 30px;">${arrText.join(', ')}</div>`);
 					}
 				}
 			}
+			
 			//Checkbox
 			if (columns[key].editType !== undefined && columns[key].editType == 'checkbox' && data.estado != 'editing') {
 				var actionCell = tblObject.DataTable().cell(row, key).node();
 				if (data[columns[key].data]) {
-					$(actionCell).empty().append('<span class="glyphicon glyphicon-ok"></span>');
+					$(actionCell).empty().append(`<span class="fa fa-check"></span>`);
 				} else {
-					$(actionCell).empty().append('<span class="glyphicon glyphicon-remove"></span>');
+					$(actionCell).empty().append(`<span class="fa fa-times"></span>`);
 				}
 			}
 		}
@@ -394,16 +553,16 @@ function dtActionButtons(row, cell, config, id_column) {
 	var elements = {
 		group: $(`<div class="btn-group btn-group-justified" role="group" style="width: auto;"></div>`),
 		edit: $(`<div class="btn-group" role="group">
-					<button type="button" class="btn btn-success edit" title="Editar"><span class="glyphicon glyphicon-pencil"></span></button>
+					<button type="button" class="btn btn-success edit" title="Editar"><span class="fas fa-edit"></span></button>
 				</div>`),
 		apply: $(`<div class="btn-group" role="group">
-					<button type="button" class="btn btn-success apply" title="Consolidar"><span class="glyphicon glyphicon-ok"></span></button>
+					<button type="button" class="btn btn-success apply" title="Consolidar"><span class="fa fa-check"></span></button>
 				</div>`),
 		undo: $(`<div class="btn-group" role="group">
 					<button type="button" class="btn btn-warning undo" title="Revertir"><span class="fa fa-undo"></span></button>
 				</div>`),
 		remove: $(`<div class="btn-group" role="group">
-					<button type="button" class="btn btn-danger remove" title="Eliminar"><span class="glyphicon glyphicon-trash"></span></button>
+					<button type="button" class="btn btn-danger remove" title="Eliminar"><span class="fa fa-trash"></span></button>
 				</div>`),
 	}
 

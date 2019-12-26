@@ -28,10 +28,11 @@ $.post(`${path}/list`, {
         ],
         language: dtSpanish,
         initComplete: function(settings, json) {
+            $('[data-toggle="popover"]').popover();
             //Format search box
-            $(`#${table}_filter`).find("input").wrap("<div class='input-group'></div>");
+            /*$(`#${table}_filter`).find("input").wrap("<div class='input-group'></div>");
             $(`#${table}_filter`).find(".input-group").prepend("<span class='input-group-addon'><span class='input-group-text'><span class='fa fa-search text-center' aria-hidden='true'></span></span></span>");
-            $(`#${table}_filter`).find("input").css("margin", "0");
+            $(`#${table}_filter`).find("input").css("margin", "0");*/
         }
     });
 }, "json");
@@ -102,9 +103,10 @@ $("#main-delete").click(function() {
             var dtSelectedRows = dtRows.data().toArray();
             var dtSelectedIDs = [];
             $.each(dtSelectedRows, function(index, value) {
-                dtSelectedIDs.push(value['id']);
+                dtSelectedIDs.push(value['grid_id']);
             })
             console.log(dtSelectedIDs);
+            // return;
             //Send Request
             $.post(`${path}/delete`, {
                 list: dtSelectedIDs

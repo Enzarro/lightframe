@@ -1,0 +1,51 @@
+[
+    {
+        "id": -1,
+        "parent_id": null,
+        "texto": "Sistema",
+        "icono": "fa fa-terminal",
+        "funcion": null
+    },
+    {
+        "id": -2,
+        "parent_id": -1,
+        "texto": "Configuraciones",
+        "icono": "fa fa-wrench",
+        "funcion": "sys_config"
+    },
+    {
+        "id": -3,
+        "parent_id": null,
+        "texto": "Mantenedores",
+        "icono": "fa fa-clipboard",
+        "funcion": null
+    },
+    {
+        "id": -4,
+        "parent_id": -3,
+        "texto": "Proyectos (esquemas)",
+        "icono": "fa fa-database",
+        "funcion": "sys_clients"
+    },
+    {
+        "id": -5,
+        "parent_id": -3,
+        "texto": "Definición de tablas",
+        "icono": "fa fa-th-large",
+        "funcion": "sys_grid"
+    },
+    {
+        "id": -6,
+        "parent_id": -3,
+        "texto": "Tablas existentes",
+        "icono": "fa fa-table",
+        "funcion": "sys_tables"
+    },
+    {
+        "id": -7,
+        "parent_id": -3,
+        "texto": "Recursos",
+        "icono": "fa fa-tree",
+        "funcion": "sys_tree"
+    }
+]

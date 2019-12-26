@@ -2,27 +2,26 @@
 
 class home {
     function __construct() {
-        utils::load([
-            views.'home'
-        ]);
         $this->view = new home_view();
+        $this->utils = new utils();
         $this->frame_view = new frame_view();
+        $this->frame_model = new frame_model();
+        $this->resdata = $this->frame_model->getResourceByPath(get_class());
     }
 
     function main() {
         $this->frame_view->main([
+            'menu' => get_class(),
             'css' => ['datatables'],
             'js' => ['datatables'],
-            'concatPlugins' => true,
+            'concatPlugins' => false,
+            'cboClient' => false,
             'body' => [
-                'title' => 'Dashboard',
-                'subtitle' => 'Inicio del sistema',
+                'icon' => $this->resdata->icono,
+                'title' => $this->resdata->texto,
+                // 'subtitle' => 'Inicio del sistema',
                 'html' => $this->view->html()
             ]
         ]);
-    }
-
-    function get() {
-        echo "aqui esta la wea de get";
     }
 }

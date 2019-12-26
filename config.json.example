@@ -1,0 +1,82 @@
+{
+    "superuser": {
+        "username": "admin",
+        "password": "admin"
+    },
+    "socket": {
+        "enabled": true,
+        "routepost" : false,
+        "local": "http://18.211.79.213:3000",
+        "public": "http://18.211.79.213:3000",
+        "local_tmp": "http://172.26.5.98:3000"
+    },
+    "global": {
+        "path": "",
+        "public_url": "http:\/\/127.0.0.1"
+    },
+    "database": {
+        "profile": "Amazon Datcapital Dev",
+        "host": "127.0.0.1",
+        "port": "5432",
+        "name": "datcapital",
+        "user": "postgres",
+        "pass": "postgres",
+        "type": "pgsql"
+    },
+    "database_list": [{
+        "profile": "Amazon Datcapital Dev",
+        "host": "127.0.0.1",
+        "port": "5432",
+        "name": "datcapital",
+        "user": "postgres",
+        "pass": "postgres",
+        "type": "pgsql"
+    }],
+    "login": {
+        "host": ""
+    },
+    "sysres": [
+        {
+            "id": -1,
+            "parent_id": null,
+            "texto": "Sistema",
+            "icono": "fa fa-terminal",
+            "funcion": null
+        },
+        {
+            "id": -2,
+            "parent_id": -1,
+            "texto": "Configuraciones",
+            "icono": "fa fa-wrench",
+            "funcion": "sys_config"
+        },
+        {
+            "id": -3,
+            "parent_id": null,
+            "texto": "Mantenedores",
+            "icono": "fa fa-clipboard",
+            "funcion": null
+        },
+        {
+            "id": -4,
+            "parent_id": -3,
+            "texto": "Clientes",
+            "icono": "fa fa-database",
+            "funcion": "sys_clients"
+        },
+        {
+            "id": -5,
+            "parent_id": -3,
+            "texto": "Grillas CRUD",
+            "icono": "fa fa-th-large",
+            "funcion": "sys_grid"
+        },
+        {
+            "id": -6,
+            "parent_id": -3,
+            "texto": "\u00c1rbol de recursos",
+            "icono": "fa fa-tree",
+            "funcion": "sys_tree"
+        }
+    ]
+}

@@ -9,12 +9,16 @@ $.post(`${path}/list`, {
     dTable = $(`#${table}`).DataTable({
         autoWidth: false,
         serverSide: true,
+        processing: true,
         ajax: {
             url: `${path}/list`,
             type: 'POST',
-            data: {
-                
-            }
+            data: function ( d ) {
+                return $.extend( {}, d, {
+                    client: sessionStorage.getItem("client")
+            });
+        }
+            
         },
         columnDefs: columnDefs,
         select: {
@@ -24,15 +28,13 @@ $.post(`${path}/list`, {
         order: [
             [ 0, "asc" ]
         ],
-        language: dtSpanish,
-        initComplete: function(settings, json) {
-            //Format search box
-            $(`#${table}_filter`).find("input").wrap("<div class='input-group'></div>");
-            $(`#${table}_filter`).find(".input-group").prepend("<span class='input-group-addon'><span class='input-group-text'><span class='fa fa-search text-center' aria-hidden='true'></span></span></span>");
-            $(`#${table}_filter`).find("input").css("margin", "0");
-        }
+        language: dtSpanish
     });
 }, "json");
+
+$(document).on('client-change', function() {
+    dTable.ajax.reload();
+});
 
 //Form
 $(document).on("click", "#main-new,.main-edit", function() {
@@ -41,7 +43,8 @@ $(document).on("click", "#main-new,.main-edit", function() {
         selected = dTable.row($(this).closest('tr')).data()[primary];
     }
     $.post(`${path}/form`, {
-        id: selected
+        id: selected,
+        client: sessionStorage.getItem("client")
     }, function(data) {
         $("#modal-default .modal-body").html(data);
         InitFormFields("#modal-default .modal-body");
@@ -54,6 +57,7 @@ $("#save").click(function() {
     if ($("#form-generic").validator('validate').has('.has-error').length === 0) {
         var data = formToObject("#form-generic");
         data.id = selected;
+        data.client = sessionStorage.getItem("client");
         $.post(`${path}/set`, data, function(data) {
             if (data.type == 'success') {
                 $("#modal-default").modal("hide");
@@ -102,7 +106,8 @@ $("#main-delete").click(function() {
             console.log(dtSelectedIDs);
             //Send Request
             $.post(`${path}/delete`, {
-                list: dtSelectedIDs
+                list: dtSelectedIDs,
+                client: sessionStorage.getItem("client")
             }, function(data) {
                 if (data.type == "success") {
                     dTable.ajax.reload(null, false);

@@ -2,148 +2,181 @@
 
 class utils {
 
-    static function pluginLoader($plugins, $filetype = null, $concat = false) {
-        $pluginlist = [
-            'jquery' => [
-                '/bower_components/jquery/dist/jquery.min.js'
-                
-            ],
-            'jquery-cookie' => [
-                '/bower_components/jquery-cookie/jquery.cookie.js'
-            ],
-            'jquery-tree' => [
-                '/bower_components/jquery-tree/tree.jquery.js',
-                '/bower_components/jquery-tree/jqtree.css'
-            ],
-            'adminlte' => [
-                '/bower_components/bootstrap/dist/js/bootstrap.min.js',
-                '/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
-                '/bower_components/fastclick/lib/fastclick.js',
-                '/dist/js/adminlte.min.js',
-                '/bower_components/bootstrap/dist/css/bootstrap.min.css',
-                // '/dist/css/modern-AdminLTE.min.css',
-                '/dist/css/AdminLTE.min.css',
-                
-                '/dist/css/skins/_all-skins.min.css'
-                
-            ],
-            'frame' => [
-                'public/js/frame.js'
-            ],
-            'validator' => [
-                '/bower_components/validator/validator.min.css',
-                '/bower_components/validator/validator.min.js'
-            ],
-            'icons' => [
-                //'/bower_components/font-awesome/css/font-awesome.min.css',
-                '/bower_components/gs-font-awesome/css/all.min.css',
-                
-                '/bower_components/gs-foundation-icon-fonts/foundation-icons.css',
-                '/bower_components/gs-material-design-icons/material-icons.css',
-                '/bower_components/Ionicons/css/ionicons.min.css',
-                
-                '/bower_components/Ionicons/css/ionicons.min.css'
-            ],
-            'sweetalert' => [
-                '/bower_components/sweetalert2/sweetalert2.all.min.js'
-            ],
-            'autonumeric' => [
-                '/bower_components/autoNumeric/autoNumeric.min.js'
-            ],
-            'datatables' => [
-                '/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
-                '/bower_components/datatables.net/js/jquery.dataTables.min.js',
-                '/bower_components/datatables.net/spanish.js',
-                '/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
-                // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.js',
-                // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.css',
-                // 'core/bootstrap_admin/vendor/datatables/css/dataTables.bootstrap.min.css'
-            ],
-            'datatables-select' => [
-                "/plugins/datatables-plugins/dataTables.select.min.js",
-                "/plugins/datatables-plugins/select.dataTables.min.css"
-            ],
-            'datetimepicker' => [
-                '/bower_components/bootstrap-datetimepicker/moment.min.js',
-                '/bower_components/bootstrap-datetimepicker/moment.locale.es.js',
-                '/bower_components/bootstrap/js/transition.js',
-                '/bower_components/bootstrap/js/collapse.js',
-                '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js',
-                '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css'
-            ],
-            'typeahead' => [
-                'core/js/typeahead/bootstrap3-typeahead.js',
+    var $pluginlist = [
+        'jquery-cookie' => [
+            '/app-assets/jquery-cookie/jquery.cookie.js'
+        ],
+        'adminTheme' => [
+            
+            '/app-assets/css/bootstrap.css',
+            '/app-assets/css/bootstrap-extended.css',
+            '/app-assets/css/colors.css',
+            '/app-assets/css/components.css',
+            '/app-assets/css/core/menu/menu-types/vertical-menu.css',
+            '/app-assets/css/core/colors/palette-gradient.css',
+            '/app-assets/css/plugins/animate/animate.css',
 
-            ],
-            'jasny' => [
-                'core/js/upload/js/jasny-bootstrap.min.js',
-                'core/js/upload/css/jasny-bootstrap.min.css'
-            ],
-            'autosuggest' => [
-                'core/js/autocomplete_login/bsn.AutoSuggest_2.1.3.js',
-                'core/js/autocomplete_login/autosuggest_inquisitor.css'
-            ],
-            'bootstrap-select' => [
-                '/bower_components/bootstrap-select/js/bootstrap-select.min.js',
-                '/bower_components/bootstrap-select/js/i18n/defaults-es_CL.min.js',
-                '/bower_components/bootstrap-select/css/bootstrap-select.min.css'
-            ],
-            'socket' => [
-                'nodejs/public/js/socket.io.js'
-            ],
-            'icheck' => [
-                './plugins/iCheck/icheck.min.js',
-                './plugins/iCheck/all.css'
-            ]
-        ];
+            '/app-assets/js/core/libraries/jquery.min.js',
+            '/app-assets/vendors/js/vendors.min.js',
+            '/app-assets/vendors/js/animation/jquery.appear.js',
+            '/app-assets/js/core/app-menu.js',
+            '/app-assets/js/core/app.js',
+            '/app-assets/js/scripts/animation/animation.js',
+            '/app-assets/js/scripts/footer.min.js'
+        ],
+        'wysiwyg' => [
+            'jquery.hotkeys.js',
+            '/app-assets/wysiwyg/bootstrap-wysiwyg.js'
+        ],
+        'frame' => [
+            'public/js/frame.js'
+        ],
+        'validator' => [
+            '/app-assets/js/scripts/validator/validator.min.css',
+            '/app-assets/js/scripts/validator/validator.min.js'
+        ],
+        'icons' => [
+            '/app-assets/vendors/css/vendors.min.css',
+            '/app-assets/fonts/line-awesome/css/line-awesome.min.css',
+            '/app-assets/fonts/fontawesome-free/css/all.min.css',
+            '/app-assets/fonts/glyphicons/css/glyphicons.css',
+            '/app-assets/fonts/glyphicons/css/glyphicons-filetypes.css'
+        ],
+        'sweetalert' => [
+            '/app-assets/sweetalerts/sweetalert2.all.min.js',
+        ],
+        'autonumeric' => [
+            '/app-assets/autoNumeric/autoNumeric.min.js'
+        ],
+        'datatables' => [
+            '/app-assets/datatables/tables/jquery.dataTables.min.js',
+            '/app-assets/datatables/tables/dataTables.bootstrap4.min.js',
+            '/app-assets/datatables/tables/dataTables.bootstrap4.min.css',
+            '/app-assets/datatables/responsive/dataTables.responsive.min.js',
+            '/app-assets/datatables/responsive/responsive.dataTables.min.css',
+            '/app-assets/datatables/tables/spanish.js'
+        ],
+        'datatables-select' => [
+            "/app-assets/datatables/plugins/dataTables.select.min.js",
+            "/app-assets/datatables/plugins/select.dataTables.min.css"
+        ],
+        'datetimepicker' => [
+            
+            '/app-assets/bootstrap-datetimepicker/moment.min.js',
+            '/app-assets/bootstrap-datetimepicker/moment.locale.es.js',
+            // '/app-assets/bootstrap-datetimepicker/transition.js',
+            // '/app-assets/bootstrap-datetimepicker/collapse.js',
+            '/app-assets/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js',
+            '/app-assets/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css'
+            
+        ],
+        'datetimepickerold' => [
+            '/bower_components/bootstrap-datetimepicker/moment.min.js',
+            '/bower_components/bootstrap-datetimepicker/moment.locale.es.js',
+            '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js',
+            '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css'
+        ],
+        'tempus' => [
+            '/app-assets/moment-with-locales.min.js',
+            '/app-assets/tether.min.js',
+            '/app-assets/tempusdominus-bootstrap-4.css',
+            '/app-assets/tempusdominus-bootstrap-4.js'
+        ],
+        'daterange' => [
+            '/app-assets/vendors/css/pickers/daterange/daterangepicker.css',
+            '/app-assets/vendors/js/pickers/dateTime/moment-with-locales.min.js',
+            '/app-assets/vendors/js/pickers/daterange/daterangepicker.js'
+        ],
+        'bootstrap-wysiwyg' => [
+            '/app-assets/bootstrap-wysiwyg/bootstrap-wysiwyg.js',
+            '/app-assets/bootstrap-wysiwyg/jquery.hotkeys.js'
+        ],
+        'typeahead' => [
+            'core/js/typeahead/bootstrap3-typeahead.js',
 
+        ],
+        'jasny' => [
+            'core/js/upload/js/jasny-bootstrap.min.js',
+            'core/js/upload/css/jasny-bootstrap.min.css'
+        ],
+        'autosuggest' => [
+            'core/js/autocomplete_login/bsn.AutoSuggest_2.1.3.js',
+            'core/js/autocomplete_login/autosuggest_inquisitor.css'
+        ],
+        'bootstrap-select' => [
+            '/app-assets/js/scripts/bootstrap-select/js/bootstrap-select.min.js',
+            '/app-assets/js/scripts/bootstrap-select/js/i18n/defaults-es_CL.min.js',
+            '/app-assets/js/scripts/bootstrap-select/css/bootstrap-select.min.css'
+        ],
+        'socket' => [
+            'nodejs/public/js/socket.io.js'
+        ],
+        'scrollable' => [
+            '/app-assets/js/scripts/ui/scrollable.min.js'
+        ],
+        'popover' => [
+            '/app-assets/js/scripts/popover/popover.min.js'
+        ],
+        'select-picker' => [
+            '/app-assets/js/scripts/bootstrap-select/js/bootstrap-select.min.js',
+            '/app-assets/js/scripts/bootstrap-select/css/bootstrap-select.css'
+        ]
+    ];
+
+    var $excludeConcat = [
+        'icons'
+    ];
+
+    function pluginLoader($plugins, $filetype = null, $concat = false) {
+        
         ob_start();
         
-        if ($concat) {
-            //Concat
-            foreach ($plugins as $plugin) {
-                if (self::startsWith(ltrim($plugin), '<script') || self::startsWith(ltrim($plugin), '<style')) {
-                    echo $plugin;
-                } else if (in_array($plugin, array_keys($pluginlist))) {
-                    //El plugin solicitado está en el listado
-                    foreach($pluginlist[$plugin] as $kLink) {
+        foreach ($plugins as $plugin) {
+            if (self::startsWith(ltrim($plugin), '<script') || self::startsWith(ltrim($plugin), '<style')) {
+                echo $plugin;
+            } else if (in_array($plugin, array_keys($this->pluginlist))) {
+                //El plugin solicitado está en el listado
+                if ($concat && !in_array($plugin, $this->excludeConcat)) {
+                    foreach($this->pluginlist[$plugin] as $kLink) {
                         //Cargar los archivos correspondientes al plugin
                         if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                            ?><script><?php echo file_get_contents(root.$kLink); ?></script><?php
+                            ?><script data-name="<?=$kLink?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></script><?php
                         }
                         if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                            ?><style><?php echo file_get_contents(root.$kLink); ?></style><?php
+                            ?><style data-name="<?=$kLink?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></style><?php
                         }
                     }
-                    
-                } else if (strstr($plugin, '/')) {
-                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                        ?><script><?php echo file_get_contents(root.$plugin); ?></script><?php
-                    }
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                        ?><style><?php echo file_get_contents(root.$plugin); ?></style><?php
+                } else {
+                    foreach($this->pluginlist[$plugin] as $kLink) {
+                        $public = public_url;
+                        //Cargar los archivos correspondientes al plugin
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                            ?><script src="<?php echo public_url.$kLink; ?>"></script><?php echo PHP_EOL;
+                        }
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                            ?><link href="<?php echo public_url.$kLink; ?>" rel="stylesheet"><?php echo PHP_EOL;
+                        }
                     }
                 }
-            }
-        } else {
-            //Classic
-            foreach ($plugins as $plugin) {
-                if (self::startsWith(ltrim($plugin), '<script') || self::startsWith(ltrim($plugin), '<style')) {
-                    echo $plugin;
-                } else if (in_array($plugin, array_keys($pluginlist))) {
-                    //El plugin solicitado está en el listado
-                    foreach($pluginlist[$plugin] as $kLink) {
-                        //Cargar los archivos correspondientes al plugin
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                            ?><script src="<?php echo public_url.$kLink; ?>"></script><?php
-                        }
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                            ?><link href="<?php echo public_url.$kLink; ?>" rel="stylesheet"><?php
-                        }
+                
+            } else if (strstr($plugin, '/')) {
+                if ($this->startsWith($plugin, 'http')) {
+                    //El plugin solicitado está en otro servidor
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                        ?><script src="<?php echo $plugin; ?>"></script><?php
                     }
-                    
-                } else if (strstr($plugin, '/')) {
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                        ?><link href="<?php echo $plugin; ?>" rel="stylesheet"><?php
+                    }
+                } elseif ($concat && !in_array($plugin, $this->excludeConcat)) {
+                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                        ?><script data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></script><?php
+                    }
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                        ?><style data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></style><?php
+                    }
+                } else {
                     //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
                     if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
                         ?><script src="<?php echo public_url.$plugin; ?>"></script><?php
@@ -156,6 +189,71 @@ class utils {
         }
         
         return ob_get_clean();
+    }
+
+    static function autoLoad() {
+        //Clases
+        // self::load_files(classes);
+        // $classes = scandir(classes);
+        // $classes = array_values(array_filter($classes, function($file) {
+        //     return self::endsWith($file, '.php') && $file != 'lightframe.php';
+        // }));
+        // $classes = array_map(function($file) {
+        //     return classes.$file;
+        // }, $classes);
+        // self::load($classes);
+
+        self::load([
+            classes.'formitembuilder.php'
+        ]);
+
+        //Controladores
+        self::load_files(controllers);
+        // $controllers = scandir(controllers);
+        // $controllers = array_values(array_filter($controllers, function($file) {
+        //     return self::endsWith($file, '.php');
+        // }));
+        // $controllers = array_map(function($file) {
+        //     return controllers.$file;
+        // }, $controllers);
+        // self::load($controllers);
+
+        //Modelos
+        self::load_files(models);
+        // $models = scandir(models);
+        // $models = array_values(array_filter($models, function($file) {
+        //     return self::endsWith($file, '.model.php');
+        // }));
+        // $models = array_map(function($file) {
+        //     return models.$file;
+        // }, $models);
+        // self::load($models);
+
+        //Vistas
+        self::load_files(views);
+        // $views = scandir(views);
+
+        // echo json_encode($views);
+        // exit;
+
+        // $views = array_values(array_filter($views, function($file) {
+        //     return self::endsWith($file, '.view.php');
+        // }));
+        // $views = array_map(function($file) {
+        //     return views.$file;
+        // }, $views);
+        // self::load($views);
+    }
+
+    static function load_files($target) {
+        if(is_dir($target)) {
+            $files = glob( $target . '*', GLOB_MARK ); //GLOB_MARK adds a slash to directories returned
+            foreach( $files as $file ) {
+                self::load_files( $file );
+            }
+        } elseif(is_file($target)) {
+            self::load($target);
+        }
     }
 
     static function load($path) {
@@ -231,6 +329,14 @@ class utils {
         return (substr($haystack, -$length) === $needle);
     }
 
+    static function emit($name, $values) {
+        global $config;
+        self::curl_post_async($config->socket->local."/emit", [
+            "name" => $name,
+            "values" => json_encode($values)
+        ]);
+    }
+
     static function post($url = '', $data = [], $json = false) {
         $options = [
             'http' => [
@@ -252,6 +358,33 @@ class utils {
 
         if ($json) return json_decode($result, true);
         return $result;
+    }
+
+    static function curl_post_async($url, $params)
+    {
+        foreach ($params as $key => &$val) {
+        if (is_array($val)) $val = implode(',', $val);
+            $post_params[] = $key.'='.urlencode($val);
+        }
+        $post_string = implode('&', $post_params);
+
+        $parts=parse_url($url);
+
+        $fp = fsockopen($parts['host'],
+            isset($parts['port'])?$parts['port']:80,
+            $errno, $errstr, 30);
+
+        // pete_assert(($fp!=0), "Couldn't open a socket to ".$url." (".$errstr.")");
+
+        $out = "POST ".$parts['path']." HTTP/1.1\r\n";
+        $out.= "Host: ".$parts['host']."\r\n";
+        $out.= "Content-Type: application/x-www-form-urlencoded\r\n";
+        $out.= "Content-Length: ".strlen($post_string)."\r\n";
+        $out.= "Connection: Close\r\n\r\n";
+        if (isset($post_string)) $out.= $post_string;
+
+        fwrite($fp, $out);
+        fclose($fp);
     }
 
     function get($url, $data = [], $json = false) {
@@ -302,10 +435,17 @@ class utils {
     }
 
     function arrayToTable($params) {
+        global $_DB;
         global $config;
-        $_DB = new database($config->database);
 		extract($params);
-		//$table, $key, $filter, $data, $insert = true, $delete = true, $duplicate = true
+        //$table, $key, $filter, $data, $insert = true, $delete = true, $duplicate = true
+        if (!isset($schema)) {
+            if ($config->database->type == "pgsql") {
+                $schema = 'public';
+            } else if ($config->database->type == "mssql") {
+                $schema = 'dbo';
+            }
+		}
 		if (!isset($table)) {
 			return false;
 		}
@@ -317,6 +457,9 @@ class utils {
         }
         if (!isset($duplicate)) {
 			$duplicate = true;
+        }
+        if (!isset($preserve)) {
+			$preserve = true;
 		}
 
 		
@@ -338,23 +481,54 @@ class utils {
                 //Tipos de datos
                 if (in_array('int', $columnDefs[$ckey])) {
                     if (in_array('autonum', $columnDefs[$ckey])) {
-                        $qryCreate .= "{$ckey} SERIAL";
+                        if ($config->database->type == "pgsql") {
+                            $qryCreate .= "{$ckey} SERIAL";
+                        } else if ($config->database->type == "mssql") {
+                            $qryCreate .= "{$ckey} INT IDENTITY(1,1)";
+                        }
                     } else {
                         $qryCreate .= "{$ckey} INT";
                     }
-                    $columns[$ckey] = 'int4';
+                    if ($config->database->type == "pgsql") {
+                        $columns[$ckey] = 'int4';
+                    } else if ($config->database->type == "mssql") {
+                        $columns[$ckey] = 'int';
+                    }
                 } else if (in_array('varchar', $columnDefs[$ckey])) {
                     $qryCreate .= "{$ckey} VARCHAR(255)";
                     $columns[$ckey] = 'varchar';
+                } else if (in_array('varcharmax', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} NVARCHAR(MAX)";
+                    $columns[$ckey] = 'nvarchar';
                 } else if (in_array('float', $columnDefs[$ckey])) {
                     $qryCreate .= "{$ckey} FLOAT";
-                    $columns[$ckey] = 'float4';
+                    if ($config->database->type == "pgsql") {
+                        $columns[$ckey] = 'float4';
+                    } else if ($config->database->type == "mssql") {
+                        $columns[$ckey] = 'float';
+                    }
                 } else if (in_array('timestamp', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} TIMESTAMP";
-                    $columns[$ckey] = 'timestamp';
+                    if ($config->database->type == "pgsql") {
+                        $qryCreate .= "{$ckey} TIMESTAMP";
+                        $columns[$ckey] = 'timestamp';
+                    } else if ($config->database->type == "mssql") {
+                        $qryCreate .= "{$ckey} DATETIME";
+                        $columns[$ckey] = 'datetime';
+                    }
+                } else if (in_array('date', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} DATE";
+                    $columns[$ckey] = 'date';
+                } else if (in_array('time', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} TIME";
+                    $columns[$ckey] = 'time';
                 } else if (in_array('json', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} JSON";
-                    $columns[$ckey] = 'json';
+                    if ($config->database->type == "pgsql") {
+                        $qryCreate .= "{$ckey} JSON";
+                        $columns[$ckey] = 'json';
+                    } else if ($config->database->type == "mssql") {
+                        $qryCreate .= "{$ckey} NVARCHAR(MAX)";
+                        $columns[$ckey] = 'nvarchar';
+                    }
                 }
                 //Características
                 if (in_array('primary', $columnDefs[$ckey])) {
@@ -378,7 +552,11 @@ class utils {
             foreach($keys as $ckey) {
                 if (is_int($firstElement[$ckey])) {
                     $qryCreate .= "{$ckey} int";
-                    $columns[$ckey] = 'int4';
+                    if ($config->database->type == "pgsql") {
+                        $columns[$ckey] = 'int4';
+                    } else if ($config->database->type == "mssql") {
+                        $columns[$ckey] = 'int';
+                    }
                 } else {
                     $qryCreate .= "{$ckey} varchar(255)";
                     $columns[$ckey] = 'varchar';
@@ -392,23 +570,67 @@ class utils {
 
 		$createTable = true;
 		//Check if temp table exists
-		$query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{$table}'";
-		$res = $_DB->query($query);
-		$reg = $_DB->to_object($res)->count;
+		$query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+        $reg = $_DB->queryToSingleVal($query);
 
 		if ($reg) {
-			//Extract columns from DB
-			$query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{$table}'";
-			$res = $_DB->query($query);
+            //Extract columns from DB
+            if ($config->database->type == "pgsql") {
+                $query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+            } else if ($config->database->type == "mssql") {
+                $query = "SELECT column_name, data_type as udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+            }
+			
+			$res = $_DB->queryToArray($query);
 			$dbColumns = [];
-			while ($column = $_DB->to_object($res)) {
-				$dbColumns[$column->column_name] = $column->udt_name;
+			foreach ($res as $column) {
+                $column = (object)$column;
+                if ($column && property_exists($column, 'column_name')) {
+                    $dbColumns[$column->column_name] = $column->udt_name;
+                } else {
+                    ob_start();
+                    echo $query;
+                    var_dump($column);
+                    error_log(ob_get_clean());
+                    die;
+                }
 			}
 			//Compare columns
 			$comparison = array_diff_assoc($columns, $dbColumns);
 			if (!empty($comparison)) {
-                $_DB->query("DROP TABLE {$table};");
-                error_log("Dropping table {$table}, comparison: ".json_encode($comparison), 0);
+                if ($preserve) {
+                    //Traer toda la data desde la tabla que se va a droppear
+                    $tmpData = $_DB->queryToArray("SELECT * FROM {$schema}.{$table}");
+                    if ($tmpData) {
+                        $columnKeys = array_keys($columnDefs);
+                        //Old data in new columns / delete old columns data
+                        $tmpData = array_map(function($row) use ($columnKeys) {
+                            $newrow = [];
+                            foreach (array_keys($row) as $ckey) {
+                                if (in_array($ckey, $columnKeys)) {
+                                    $newrow[$ckey] = $row[$ckey];
+                                }
+                            }
+                            return $newrow;
+                        }, $tmpData);
+                        //Venía data por defecto
+                        if (isset($data)) {
+                            if ($key) {
+                                $oldKeyVals = array_column($tmpData, $key);
+                                foreach ($data as $row) {
+                                    if (!in_array($row[$key], $oldKeyVals)) {
+                                        $tmpData[] = $row;
+                                    }
+                                }
+                            }
+                        }
+                        $data = $tmpData;
+                    }
+                }
+                $_DB->query("DROP TABLE {$schema}.{$table};");
+                error_log("Dropping table {$schema}.{$table}, comparison: ".json_encode($comparison), 0);
+                error_log("DB Columns: ".json_encode($dbColumns));
+                error_log("New Columns: ".json_encode($columns));
 			} else {
 				$createTable = false;
 			}
@@ -418,18 +640,18 @@ class utils {
 		//Create table
 		if ($createTable) {
 			//Build "create table"...
-            $_DB->query("CREATE TABLE {$table} {$qryCreate}");
-            error_log("Creating table {$table}", 0);
-            error_log("CREATE TABLE {$table} {$qryCreate}");
-		} 
+            $_DB->query("CREATE TABLE {$schema}.{$table} {$qryCreate}");
+            error_log("Creating table {$schema}.{$table}", 0);
+            error_log("CREATE TABLE {$schema}.{$table} {$qryCreate}");
+		}
 
 		if ($delete) {
             //Erase possible data with filter
             if ($filter) {
-                $_DB->query("DELETE FROM {$table} WHERE ".$this->arrayToQuery('and', $filter));
+                $_DB->query("DELETE FROM {$schema}.{$table} WHERE ".$this->arrayToQuery('and', $filter));
                 error_log("Deleting filtered data", 0);
             } else {
-                $_DB->query("DELETE FROM {$table}");
+                $_DB->query("DELETE FROM {$schema}.{$table}");
                 error_log("Deleting data", 0);
             }
 		}
@@ -438,13 +660,19 @@ class utils {
             //Check if data is duplicated
             if (!$duplicate && isset($key)) {
                 $keystoinsert = array_column($data, $key);
-                $_DB->query("DELETE FROM {$table} WHERE {$key} IN ".$this->arrayToQuery('in', $keystoinsert));
+                $_DB->query("DELETE FROM {$schema}.{$table} WHERE {$key} IN ".$this->arrayToQuery('in', $keystoinsert));
                 error_log("Deleting duplicated data: ".$this->arrayToQuery('in', $keystoinsert), 0);
             }
 
             //Fill table with data
-            if (isset($data)) {
-                $_DB->query("INSERT INTO {$table} ".$this->multipleArrayToInsert($data));
+            if (isset($data) && $data) {
+                if ($config->database->type == "mssql") {
+                    $_DB->query("SET IDENTITY_INSERT {$schema}.{$table} ON");
+                }
+                $_DB->query("INSERT INTO {$schema}.{$table} ".$this->multipleArrayToInsert($data));
+                if ($config->database->type == "mssql") {
+                    $_DB->query("SET IDENTITY_INSERT {$schema}.{$table} OFF");
+                }
                 error_log("Inserting data: ".$this->multipleArrayToInsert($data), 0);
             }
 		}
@@ -510,13 +738,14 @@ class utils {
     }
 
     function valuesArrayToSQLCompatibleString($array, $returnArray = false) {
+        global $config;
         $keys = array_keys($array);
         $lastKey = end($keys);
         $finalString = '';
         $finalArray = [];
         foreach ($keys as $key) {
             //Vacío (null)
-            if ($array[$key] == '' || $array[$key] === null) {
+            if ($array[$key] === '' || $array[$key] === null) {
                 $finalString .= 'null';
                 $finalArray[] = 'null';
             }
@@ -537,7 +766,13 @@ class utils {
             }
             //Es string (por descarte, con comillas)
             else {
-                if ($array[$key] == 'now()' || $array[$key] == 'DEFAULT' || utils::startsWith($array[$key], 'excluded.')) {
+                if ($array[$key] == 'now()' || $array[$key] == 'getdate()' || $array[$key] == 'DEFAULT' || utils::startsWith($array[$key], 'excluded.')) {
+                    if ($array[$key] == 'now()' && $config->database->type == 'mssql') {
+                        $array[$key] = 'getdate()';
+                    }
+                    if ($array[$key] == 'getdate()' && $config->database->type == 'pgsql') {
+                        $array[$key] = 'now()';
+                    }
                     $finalString .= "$array[$key]";
                     $finalArray[] = "$array[$key]";
                 } else {
@@ -559,49 +794,94 @@ class utils {
     }
     
     //Convertir Array a String Query
-    function arrayToQuery($action, $array, $test = false) {
+    /**
+     * $action: puede ser un string o un arreglo. Si es un arreglo, todos los parámetros deberían venir dentro del arreglo, incluyendo "action".
+     * La acción puede ser "insert", "update", "in", "and".
+     * 
+     * $array: Es el arreglo de datos que será convertido a la acción determinada. De no ser enviado como segundo parámetro, debe ir dentro del arreglo.
+     * $return: Las columnas que devolverá la consulta generada de las filas afectadas.
+     * $where: El string correspondiente a la cláusula where.
+     */
+    function arrayToQuery($action, $array = null) {
+        global $config;
+        if (is_array($action)) {
+            extract($action);
+            if (!isset($where)) {
+                $where = null;
+            }
+        }
         $jsonChars = ['"', '[', ']'];
         $sqlChars  = ["'", '(', ')'];
         $sQuery = "";
         if (count($array)) {
             $keys = str_replace(["'", '(', ')'], "", str_replace($jsonChars, $sqlChars, json_encode(array_keys($array))));
             //$values = str_replace(['(', ')'], "", str_replace($jsonChars, $sqlChars, json_encode(array_values($array))));
+            if (in_array($action, ['insert', 'update'])) {
+                if (isset($return) && $return) {
+                    $return = $this->returnToQuery($return);
+                } else {
+                    $return = "";
+                }
+            }
             if ($action == "update" || $action == "and") {
                 $keys = explode(',', $keys);
                 $values = $this->valuesArrayToSQLCompatibleString(array_values($array), true);
                 $fValues = array_combine($keys, $values);
-                if ($test) {
-                    echo json_encode($keys, JSON_PRETTY_PRINT);
-                    echo "\n";
-                    echo json_encode($values, JSON_PRETTY_PRINT);
-                    exit;
-                }
+                
                 if (count($fValues)) {
                     $i = 1;
+                    
                     foreach ($fValues as $key => $val) {
                         //BIT datatype syntax correction
                         if (strpos($val, "'b'") === 0) {
                             $val = substr($val, 1, -1);
                         }
                         $sQuery .= $key . " = " . $val;
+                        //Glue
                         if (count($fValues) > $i) {
                             if ($action == "update") {
-                                $sQuery .= ", ".PHP_EOL;
+                                $sQuery .= ", ";
                             } else if ($action == "and") {
                                 $sQuery .= " AND ";
                             }
-                            
                         }
                         $i++;
                     }
+
+                    if ($config->database->type == "mssql") {
+                        if (isset($return) && isset($where)) {
+                            $sQuery = "{$sQuery} {$return} {$where}";
+                        } else if (isset($return)) {
+                            $sQuery = "{$sQuery} {$return}";
+                        } else if (isset($where)) {
+                            $sQuery = "{$sQuery} {$where}";
+                        }
+                    } else if ($config->database->type == "pgsql") {
+                        if (isset($return) && isset($where)) {
+                            $sQuery = "{$sQuery} {$where} {$return}";
+                        } else if (isset($return)) {
+                            $sQuery = "{$sQuery} {$return}";
+                        } else if (isset($where)) {
+                            $sQuery = "{$sQuery} {$where}";
+                        }
+                    }
+                    
                 }
             } elseif ($action == "insert") {
                 $values = $this->valuesArrayToSQLCompatibleString(array_values($array));
                 $sQuery .= "(";
                 $sQuery .= $keys;
-                $sQuery .= ") VALUES (";
+                if ($config->database->type == "mssql" && $return) {
+                    $sQuery .= ") {$return} VALUES (";
+                } else {
+                    $sQuery .= ") VALUES (";
+                }
                 $sQuery .= $values;
-                $sQuery .= ")";
+                if ($config->database->type == "pgsql" && $return) {
+                    $sQuery .= ") {$return}";
+                } else {
+                    $sQuery .= ")";
+                }
             } elseif ($action == "in") {
                 $values = $this->valuesArrayToSQLCompatibleString(array_values($array));
                 $sQuery = "(" . $values . ")";
@@ -610,6 +890,30 @@ class utils {
         } else {
             return false;
         }
+    }
+
+    function returnToQuery($return, $action = "inserted") {
+        global $config;
+        if (is_array($return)) {
+            $return = array_map(function($col) use ($config) {
+                if ($config->database->type == "mssql") {
+                    return "{$action}.{$col}";
+                } else {
+                    return $col;
+                }
+            }, $return);
+            $return = implode(', ', $return);
+        } else {
+            if ($config->database->type == "mssql") {
+                $return = "{$action}.{$return}";
+            }
+        }
+        if ($config->database->type == "mssql") {
+            $return = "OUTPUT {$return}";
+        } else if ($config->database->type == "pgsql") {
+            $return = "RETURNING {$return}";
+        }
+        return $return;
     }
     
     function multipleArrayToWhere($array) {
@@ -625,12 +929,13 @@ class utils {
         return $query;
     }
     
-    function multipleArrayToInsert($array) {
+    function multipleArrayToInsert($array, $return = []) {
+        global $config;
         $jsonChars = ['"', '[', ']'];
         $sqlChars  = ["'", '(', ')'];
         $sQuery = "";
         //Si el primer elemento del array tiene m�ltiples elementos -- array multidimensional
-        if (count($array[0]) > 1) {
+        if (isset($array[0]) && count($array[0]) > 1) {
             //Extraer cabeceras desde el primer elemento
             $keys = str_replace(["'", '(', ')'], "", str_replace($jsonChars, $sqlChars, json_encode(array_keys($array[0]))));
     
@@ -639,18 +944,75 @@ class utils {
             }, $array);
     
             //$values = str_replace(['((', '))'], ['(', ')'], str_replace($jsonChars, $sqlChars, json_encode(array_values($array))));
+
+            if (isset($return) && $return) {
+                $return = $this->returnToQuery($return);
+            } else {
+                $return = "";
+            }
     
             $sQuery .= "(";
             $sQuery .= $keys;
-            $sQuery .= ") VALUES ";
+            if ($config->database->type == "mssql" && $return) {
+                $sQuery .= ") {$return} VALUES ";
+            } else {
+                $sQuery .= ") VALUES ";
+            }
             
             $last_key = array_keys($array);
             $last_key = end($last_key);
             foreach (array_keys($array) as $key) {
                 $sQuery .= "(".$this->valuesArrayToSQLCompatibleString(array_values($array[$key])).")".($key!=$last_key?", ":"");
             }
+
+            if ($config->database->type == "pgsql" && $return) {
+                $sQuery .= " {$return}";
+            }
         }
         return $sQuery;
+    }
+
+    function is_true($val, $return_null=false){
+        $boolval = ( is_string($val) ? filter_var($val, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : (bool) $val );
+        return ( $boolval===null && !$return_null ? false : $boolval );
+    }
+
+    // fileUploadMaxSize / uploadFile por revisar
+    function fileUploadMaxSize($returnByte=0){
+		$upload_max_filesize = ini_get('upload_max_filesize');
+        $upload_post_max_size = ini_get('post_max_size');
+        // echo $upload_max_filesize.'--'.$upload_post_max_size;
+		if(($upload_max_filesize * 1)<($upload_post_max_size * 1)){
+			$upload_max_filesize_bytes = $upload_max_filesize;
+		}else{
+			$upload_max_filesize_bytes = $upload_post_max_size;
+		}
+			if($returnByte==1){
+				$upload_max_filesize_bytes = trim($upload_max_filesize_bytes);
+				$ultimo = strtolower($upload_max_filesize_bytes[strlen($upload_max_filesize_bytes)-1]);
+				switch($ultimo) {
+					case 'g':
+						$upload_max_filesize_bytes *= 1024;
+					case 'm':
+						$upload_max_filesize_bytes *= 1024;
+					case 'k':
+						$upload_max_filesize_bytes *= 1024;
+				}
+			}
+		return $upload_max_filesize_bytes;
+	}
+
+	function uploadFile($fileUpload,$fileTemp){
+        $tamanoArchivo = $_FILES[$fileTemp]['size'];
+        // if ($tamanoArchivo > $this->fileUploadMaxSize(1)){
+        //     return false;
+        // }else{
+            if(move_uploaded_file($_FILES[$fileTemp]['tmp_name'],$fileUpload)){
+               return true;
+            }else{
+               return false;
+            }
+        // }
     }
 
 }

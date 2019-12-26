@@ -1,26 +1,29 @@
 <?php
 
 class users {
-    function __construct() {
-        utils::load([
-            views.get_class(),
-            models.get_class()
-        ]);
-        $this->frame_view = new frame_view();
-        $this->model = new users_model();
+    function __construct($resource) {
+        $this->model = new users_model($resource);
         $this->view = new users_view();
+
+        $this->frame_view = new frame_view();
+        $this->frame_model = new frame_model();
+        $this->resdata = $this->frame_model->getResourceByPath(get_class());
     }
 
     function main() {
         $this->frame_view->main([
             'menu' => get_class(),
-            'css' => ['datatables', 'datatables-select', 'datetimepicker', 'bootstrap-select', 'icheck'],
-            'js' => ['datatables', 'datatables-select', 'datetimepicker', 'bootstrap-select', 'icheck', '/js/users.js'],
+            'css' => ['datatables', 'datatables-select', '/css/users.css'],
+            'js' => ['datatables', 'datatables-select', '/js/users.js'],
             'concatPlugins' => false,
+            'cboClient' => false,
             'body' => [
-                'title' => 'Usuarios',
+                'icon' => $this->resdata->icono,
+                'title' => $this->resdata->texto,
                 'subtitle' => 'Listado de usuarios',
-                'html' => $this->view->html()
+                'html' => $this->view->html([
+                    'modalTitle' => 'Usuarios'
+                ])
             ]
         ]);
     }

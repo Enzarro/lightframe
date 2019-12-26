@@ -24,6 +24,14 @@ $("#testdb").click(function() {
     }, 'json');
 });
 
+$("#initdb").click(function() {
+    $.post('sys_config/initdb', {
+        db: formArrayToObject($("#form-db").serializeArray())
+    }, function(data) {
+        swal.fire(data.swal)
+    }, 'json');
+});
+
 //Login service
 $("#savelogin").click(function() {
     $.post('sys_config/setdb', {

@@ -124,8 +124,12 @@ class FormItem {
 		//Parametros
 		if (!is_null($params)) {
 			if ($type == "table") {
-				$this->params['config'] = $params['config'];
-				$this->params['empty'] = $params['empty'];
+                $this->params = $params;
+                if (!isset($params['btn-new'])) {
+                    $this->params['btn-new'] = true;
+                }
+				// $this->params['config'] = $params['config'];
+				// $this->params['empty'] = $params['empty'];
 			} else {
 				foreach($params as $key => &$param) {
 					//Parametros Select
@@ -234,10 +238,10 @@ class FormItem {
 			<?php endif; ?>
 			<div class="form-group<?=$required.$stack.($this->size?" form-group-".$this->size:"").($this->stack?" elementcontainer":"")?>" style="<?=($this->stack?$style:'').($this->size=="sm"?'margin-bottom: 0px;':'')?>">
 				
-				<label for="<?=$name?>" class="control-label<?=($this->horizontal?" col-sm-3":"")?>"><?=$this->label?></label>
+				<label for="<?=$name?>" class="control-label<?=($this->horizontal?" col-sm-33":"")?>"><?=$this->label?></label>
 				
 				<?php if($this->horizontal): ?>
-				<div class="col-sm-9">
+				<div class="col-sm-99">
 				<?php endif; ?>
 				
 					<?php if(!empty($this->addons)): ?>
@@ -367,15 +371,19 @@ class FormItem {
 							}
 						}
 					}
-				}
+                }
+                if (!isset($this->params["where"])) $this->params["where"] = '';
 				$query =
 					"SELECT {$queryData}".
 						(array_key_exists("id", $this->params)?"{$this->params["id"]}".(array_key_exists("id-alias", $this->params)?" AS ".$this->params["id-alias"]:"").", ":"").
 						"{$this->params["text"]}".(array_key_exists("text-alias", $this->params)?" AS ".$this->params["text-alias"]:"").
 					" FROM 
 						{$this->params["table"]} {$this->params["where"]}";
-				$res = $_DB->query($query);
-				while ($reg = $_DB->to_object($res)) {
+				$res = $_DB->queryToArray($query);
+
+                foreach ($res as $reg) {
+				// while ($reg = $_DB->to_object($res)) {
+                    $reg = (object)$reg;
 					$option = [];
 					$option["id"] = $reg->$id;
 					$option["text"] = $reg->$text;
@@ -384,7 +392,8 @@ class FormItem {
 						foreach($this->params["data"] as $data) {
 							if (is_array($data) && !empty($data)) {
 								if (count($data) == 1 || count($data) == 2) {
-									$option["data"][$data[count($data)-1]] = $reg->$data[count($data)-1];
+                                    $option["data"] = [];
+                                    $option["data"][$data[count($data)-1]] = $reg->{$data[count($data)-1]};
 								}
 							}
 						}
@@ -514,12 +523,15 @@ class FormItem {
 	 */
 	function buildTable(array $data) {
 		extract($data);
+		$value = json_encode($value, JSON_PRETTY_PRINT);
+		$config = json_encode($this->params['config']);
+		$empty = json_encode($this->params['empty']);
 		ob_start(); ?>
 		<div id="<?=$name?>" <?=$properties?>>
-            <textarea name="<?=$name?>" id="data" style="display: none;"><?php echo json_encode($value, JSON_PRETTY_PRINT); ?></textarea>
-            <pre id="config" style="display: none;"><?=json_encode($this->params['config'])?></pre>
-            <pre id="emptyrow" style="display: none;"><?=json_encode($this->params['empty'])?></pre>
-            <a class="btn btn-primary" id="agregar"><span class="glyphicon glyphicon-plus"></span> Agregar</a>
+            <textarea name="<?=$name?>" id="data" style="display: none;"><?=$value?$value:'null'?></textarea>
+            <pre id="config" style="display: none;"><?=$config?></pre>
+            <pre id="emptyrow" style="display: none;"><?=$empty?></pre>
+            <?php if ($this->params['btn-new']): ?><button class="btn btn-primary" id="agregar" onClick="return false;"><span class="fa fa-plus"></span> Agregar</button><?php endif; ?>
             <table class="table table-bordered table-condensed" style="width: 100%"></table>
         </div>
 		<?php return ob_get_clean();

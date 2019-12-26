@@ -28,12 +28,20 @@ $.post(`${path}/list`, {
         language: dtSpanish,
         "initComplete": function(settings, json) {
             //Format search box
-            $(`#${table}_filter`).find("input").wrap("<div class='input-group'></div>");
+            /*$(`#${table}_filter`).find("input").wrap("<div class='input-group'></div>");
             $(`#${table}_filter`).find(".input-group").prepend("<span class='input-group-addon'><span class='input-group-text'><span class='fa fa-search text-center' aria-hidden='true'></span></span></span>");
-            $(`#${table}_filter`).find("input").css("margin", "0");
+            $(`#${table}_filter`).find("input").css("margin", "0");*/
         }
     });
 }, "json");
+
+$("#dt-padre").change(function() {
+    var optsel = '';
+    if ($(this).val()) {
+        optsel = $(this).find('option:selected').text();
+    }
+    dTable.column(5).search( optsel ).draw()
+});
 
 $(document).on("click", "#main-new,.main-edit", function() {
     selected = undefined;
@@ -47,15 +55,18 @@ $(document).on("click", "#main-new,.main-edit", function() {
         InitFormFields("#modal-default .modal-body");
         $("#grilla").change(function(){
             if(!$("#grilla").val()) {
-                $("#name").val("");
-                $("#path").val("");
-                $('#padre').selectpicker('val', '');
+                // $("#name").val("");
+                // $("#path").val("");
+                // $('#padre').selectpicker('val', '');
             } else {
-                let name = $(this).find("option:selected").text().toLowerCase();
-                $('#padre').selectpicker('val', '');
-                $("#name").val($(this).find("option:selected").text());
-                $("#path").val(name + '_s');
-            }          
+                let grid_name = $(this).find("option:selected").text();
+                // $('#padre').selectpicker('val', '');
+                $("#name").val(grid_name);
+                $("#path").val(grid_name).blur();
+            }
+        });
+        $("#path").blur(() => {
+            $("#path").val($("#path").val().replace(/\s+/g, '_').toLowerCase());
         });
         $("#modal-default").modal("show");    
     });
@@ -63,15 +74,22 @@ $(document).on("click", "#main-new,.main-edit", function() {
 
 //save
 $("#save").click(function() {
-    var data = formToObject("#form-grid");
-    data.id = selected;
-    $.post(`${path}/set`, data, function(data) {
-        if (data.type == 'success') {
-            $("#modal-default").modal("hide");
-            dTable.ajax.reload();
-        }
-        swal.fire(data);
-    }, 'json');
+    if (validateForm("#form-grid")) {
+        //cambio btn save a estado guardando...
+        var btn_status = $('#save').html();
+        $('#save').html(btn_save_layer).attr("disabled", true);
+
+        var data = formToObject("#form-grid");
+        data.id = selected;
+        $.post(`${path}/set`, data, function(data) {
+            if (data.type == 'success') {
+                $('#save').attr("disabled", false).html(btn_status); // reponer btn save
+                $("#modal-default").modal("hide");
+                dTable.ajax.reload();
+            }
+            swal.fire(data);
+        }, 'json');
+    }
 });
 
 //Delete
