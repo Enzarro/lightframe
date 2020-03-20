@@ -49,7 +49,7 @@ class frame_view {
         <head>
             <meta charset="utf-8">
             <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            <title>DatCapital | Lightframe</title>
+            <title>LightFrame</title>
             <!-- Tell the browser to be responsive to screen width -->
             <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
@@ -93,9 +93,9 @@ class frame_view {
             <!-- Logo -->
             <a href="index2.html" class="logo">
             <!-- mini logo for sidebar mini 50x50 pixels -->
-            <span class="logo-mini"><b>D</b>C</span>
+            <span class="logo-mini"><b>L</b>F</span>
             <!-- logo for regular state and mobile devices -->
-            <span class="logo-lg"><b>DAT</b>Capital</span>
+            <span class="logo-lg"><b>Light</b>Frame</span>
             </a>
 
             <!-- Header Navbar: style can be found in header.less -->
@@ -308,7 +308,7 @@ class frame_view {
                 <li class="dropdown user user-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                     <img src="<?=public_url?>/dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
-                    <span class="hidden-xs">Antonio Roa</span>
+                    <span class="hidden-xs">Hackerman</span>
                     </a>
                     <ul class="dropdown-menu">
                     <!-- User image -->
@@ -316,7 +316,7 @@ class frame_view {
                         <img src="<?=public_url?>/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
 
                         <p>
-                        Antonio Roa - Web Developer
+                        Hackerman - Web Developer
                         <small>Member since Nov. 2012</small>
                         </p>
                     </li>
@@ -435,7 +435,7 @@ class frame_view {
           <img src="<?=public_url?>/dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
         </div>
         <div class="pull-left info">
-          <p>Antonio Roa</p>
+          <p>Hackerman</p>
           <a href="#"><i class="fa fa-circle text-success"></i> En línea</a>
         </div>
       </div>
