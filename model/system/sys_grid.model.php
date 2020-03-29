@@ -2,9 +2,38 @@
 
 class sys_grid_model {
 
-    var $db;
-	var $fieldTypes = ['int', 'float', 'text', 'check', 'select', 'bselect', 'dtpicker', 'rut'];
-	var $fieldAttributes = ['primary' => 'PK', 'autonum' => 'Autonumeric', 'notnull' => 'Obligatorio', 'hidden' => 'Ocultar'];
+	var $db;
+	var $table = 'sys_grids';
+	var $primaryKey = 'grid_id';
+	var $tableII = 'sys_grids_fields';
+	var $primaryKeyII = 'field_id';
+	var $tableIII = 'sys_fields_attrs';
+	var $fieldTypes = [
+		'int',
+		'float',
+		'text',
+		'textarea',
+		'check',
+		'select',
+		'bselect',
+		'month',
+		'date',
+		'time',
+		'datetime',
+		'dtpicker',
+		'rut'
+	];
+	var $fieldAttributes = [
+		'primary' => 'PK',
+		'autonum' => 'Autonumeric',
+		'notnull' => 'Obligatorio',
+		'hidden' => 'Ocultar',
+		'hiddenForm' => 'Ocultar (Form)',
+		'uppercase' => 'Mayusculas',
+		'select-text' => 'Texto (select)',
+		'select-group' => 'Grupo (select)',
+		'select-subtext' => 'Subtexto (bselect)'
+	];
 
     function __construct() {
 		$this->utils = new utils();
@@ -19,39 +48,63 @@ class sys_grid_model {
 	function list() {
 		global $config;
 
-		$table = 'grids';
-		$primaryKey = 'grid_id';
-
 		$dtNum = 0;
 		$columns = [
 			[
 				//DB
 				'dt' => $dtNum++,
-				'db' => $primaryKey,
+				'db' => $this->primaryKey,
 				//DT
 				'title' => 'ID',
 				'searchable' => false,
 				'visible' => false
 			],
 			[
+				'dt' => $dtNum++,
+				'db' => "CASE target_schema WHEN 1 THEN '[DBO]' WHEN 2 THEN '[CLI]' ELSE 'No hay seleccion' END",
+				'alias' => 'target_schema',
+				'title' => 'Esquema',
+				"width" => "10px",
+			],
+			[
 				//DB
 				'dt' => $dtNum++,
-				'db' => 'name',
+				'db' => "name",
+				'formatter' => function ($data, $row) {
+					ob_start(); ?>
+					<b><?=$data?></b> [<?=$row['table_name']?>]
+					<?php return ob_get_clean();
+				},
 				//DT
                 'title' => 'Nombre'
-            ],
+			],
+			[
+				//DB
+				'dt' => $dtNum++,
+				'db' => 'table_name',
+				//DT
+				'title' => 'Nombre tabla',
+				'visible' => false
+			],
             [
 				'dt' => $dtNum++,
-				'db' => '(SELECT jsonb_agg(fields) FROM (SELECT field_id AS id, name, column_name AS column, type FROM grids_fields WHERE grid_id = grids.grid_id) AS fields)',
+				'db_pgsql' => "(SELECT jsonb_agg(fields) FROM (SELECT field_id AS id, name, column_name AS column, type FROM {$this->tableII} WHERE {$this->primaryKey} = {$this->table}.{$this->primaryKey}) AS fields)",
+				'db_mssql' => "(SELECT field_id AS id, name, column_name AS 'column', type FROM {$this->tableII} WHERE {$this->primaryKey} = {$this->table}.{$this->primaryKey} ORDER BY orden ASC FOR JSON AUTO)",
 				'alias' => 'fields',
 				'title' => 'Campos',
 				'orderable' => false,
 				'searchable' => false,
 				'formatter' => function ($data) {
 					$data = json_decode($data);
-					ob_start(); ?><div style="overflow: auto; height: 34px;"><?php
-					foreach($data as $row) {
-						echo "<b>Nombre:</b> ".utf8_decode($row->name).", <b>Tipo:</b> $row->type<br>";
+					ob_start(); ?>
+					
+					<!--<button type="button" class="btn btn-icon btn-pure secondary" data-toggle="popover" data-content="<div class='popover' role='popover'><div class='arrow'></div><div class='popover-header'></div><div class='popover-body'></div></div>" data-original-title="Default Template Structure" data-trigger="hover" data-placement="top" aria-describedby="popover446548">
+					<i class="fas fa-eye"></i>
+					</button>-->
+					
+					<div style="overflow: auto; height: 60px;"><?php
+					if (is_array($data)) foreach($data as $row) {
+						?><b><?=$row->name?></b> [<?=$row->column?>, <?=$row->type?>]<br><?php
 					}
 					?></div><?php return ob_get_clean();
 				}
@@ -65,8 +118,8 @@ class sys_grid_model {
 				'formatter' => function( $d, $row ) {
 					ob_start(); ?>
 						<div class="btn-group btn-group" role="group" style="width: auto;">
-							<button class="btn btn-success main-edit" title="Editar registro" type="button"><span aria-hidden="true" class="fa fa-pencil"></span></button>
-							<button class="btn btn-warning main-consolidate" title="Consilidar en Base de Datos" type="button"><span aria-hidden="true" class="fa fa-database"></span></button>
+							<button class="btn btn-success main-edit" title="Editar registro" type="button"><i class="fas fa-edit"></i></button>
+							<button class="btn btn-warning main-consolidate" title="Consolidar en Base de Datos" type="button"><span aria-hidden="true" class="fa fa-database"></span></button>
 						</div>
 					<?php return ob_get_clean();
 				},
@@ -92,81 +145,45 @@ class sys_grid_model {
 
 		//Filtro: Contenido de cláusula WHERE, también puede contener JOIN
 		// $filtro = "(NOT eliminado = 1 OR eliminado IS NULL)";
-		$filtro = null;
+        $filtro = null;
 
-		return SSP::simple( $_POST, $config->database, $table, $primaryKey, $columns, $filtro);
-	}
-
-    function listObj() {
-		$targets = 0;
-		$columns = [[
-			'targets' => $targets++,
-			'data' => 'id',
-			'title' => 'ID',
-			'visible' => false
-		], [
-			'targets' => $targets++,
-			'data' => 'name',
-			'title' => 'Nombre'
-		], [
-			'targets' => $targets++,
-			'data' => 'table',
-			'title' => 'Tabla'
-		], [
-			'targets' => $targets++,
-			'data' => 'fields',
-			'title' => 'Campos',
-			'orderable' => false,
-			'format' => function ($data) {
-				ob_start(); ?><div style="overflow: auto; height: 34px;"><?php
-				foreach($data as $row) {
-					echo "<b>Nombre:</b> $row->name, <b>Tipo:</b> $row->type<br>";
-				}
-				?></div><?php return ob_get_clean();
-			}
-		], [
-			'targets' => $targets++,
-			'title' => 'Acciones',
-			'data' => null,
-			'searchable' => false,
-			'orderable' => false,
-			'width' => '50px',
-			'defaultContent' => 
-				'<div class="btn-group btn-group" role="group" style="width: auto;">
-					<button class="btn btn-success main-edit" title="Editar registro" type="button"><span aria-hidden="true" class="fa fa-pencil"></span></button>
-				</div>'
-		], [
-			//DT
-			'targets' => $targets++,
-			"title" => '<span class="glyphicon glyphicon-trash text-center" aria-hidden="true"></span>',
-			"width" => "16px",
-			"data" => null,
-			"defaultContent" => "",
-			"orderable" => false,
-			"className" => 'select-checkbox',
-			"searchable" => false
-		]];
-        if (isset($_POST["config"]) && $_POST["config"]) {
-            return $columns;
-        } else {
-			return utils::dtBuildDataFromConfig($columns, $this->grids);
-        }
+		return SSP::simple( $_POST, $config->database, $this->table, $this->primaryKey, $columns, $filtro);
 	}
 	
-	function get($id) {
-		global $config;
-		$_DB = new database($config->database);
+	function get($id = null) {
+		global $_DB;
+		global $client;
+
+		if (!$id) {
+			//Listado de grillas
+			return $_DB->queryToArray("SELECT * FROM {$this->table}");
+		}
+
+		//Según nombre de tabla
+		if (!is_numeric($id)) {
+			$id = $_DB->queryToSingleVal("SELECT {$this->primaryKey} FROM {$this->table} WHERE table_name = {$id}");
+		}
 
 		//Grilla según ID
-		$grid = $_DB->queryToArray("SELECT grid_id AS id, name, table_name AS table FROM grids WHERE grid_id = {$id}");
+		$grid = $_DB->queryToArray("SELECT {$this->primaryKey} AS id, name, table_name AS 'table', target_schema FROM {$this->table} WHERE {$this->primaryKey} = {$id}");
 		//Campos de la grilla
-		$grid_fields = $_DB->queryToArray("SELECT field_id AS id, name, column_name AS column, type, origin FROM grids_fields WHERE grid_id = {$id}");
+		$grid_fields = $_DB->queryToArray("SELECT {$this->primaryKeyII} AS id, name, column_name AS 'column', type, origin, 0 as 'order' FROM {$this->tableII} WHERE {$this->primaryKey} = {$id} ORDER BY orden ASC");
+		$i = 1;
+		foreach(array_keys($grid_fields) as $key) {
+			$grid_fields[$key]['orden'] = $i++;
+		}
 		//ID's de los campos de la grilla
 		$fields_ids = array_column($grid_fields, 'id');
 		//Atributos de los campos de la grilla por id de campo
-		$grid_fields_attrs = $_DB->queryToArray("SELECT field_id, attr FROM fields_attrs WHERE field_id IN ".$this->utils->arrayToQuery('in', $fields_ids));
+		$grid_fields_attrs = $_DB->queryToArray("SELECT field_id, attr FROM {$this->tableIII} WHERE {$this->primaryKeyII} IN ".$this->utils->arrayToQuery('in', $fields_ids));
 		//Convertir registro de grilla en objeto
 		$grid = (object)$grid[0];
+		//Parámetro stable (esquema + tabla)
+		if ($grid->target_schema == 2 && isset($client)) {
+			$grid->schema = "{$client->db_name}";
+		} else if ($grid->target_schema == 1) {
+			$grid->schema = "{$_DB->schema}";
+		}
 		//Arreglo de campos de objeto grilla
 		$grid->fields = array_map(function($field) use ($grid_fields_attrs) {
 			//Convertir cada campo en objeto
@@ -182,81 +199,192 @@ class sys_grid_model {
 		return $grid;
 	}
 
-    function getObj($id) {
-        $filtered = array_values(array_filter($this->grids, function($row) use ($id) {
-            return $row->id == $id;
-        }));
-        if ($filtered) {
-            return $filtered[0];
-        } else {
-            return [];
-        }
+	/**
+	 * attr: primary || text || select-text || select-subtext
+	 */
+	function getSelectColFromObj($obj, $attr) {
+		if ($attr == 'primary') {
+			$foundField = array_values(array_filter($obj->fields, function($field) {
+				return in_array('primary', $field->attr);
+			}));
+		} else if ($this->utils->endsWith($attr, 'text') || $this->utils->endsWith($attr, 'group')) {
+			$foundField = array_values(array_filter($obj->fields, function($field) use ($attr) {
+				return in_array($attr, $field->attr);
+			}));
+			$firstTextField = array_values(array_filter($obj->fields, function($field) {
+				return in_array($field->type, ['text', 'rut']);
+			}));
+		} else {
+			return false;
+		}
+		
+		if ($foundField) {
+			$foundField = $foundField[0];
+			return $foundField->column;
+		} else if ($firstTextField && $this->utils->endsWith($attr, 'text')) {
+			$firstTextField = $firstTextField[0];
+			return $firstTextField->column;
+		} else {
+			return false;
+		}
 	}
+
+	// function getSelectValueColFromObj($obj) {
+	// 	$foundField = array_values(array_filter($obj->fields, function($field) {
+	// 		return in_array('primary', $field->attr);
+	// 	}));
+	// 	if ($foundField) {
+	// 		$foundField = $foundField[0];
+	// 		return $foundField->name;
+	// 	} else {
+	// 		return false;
+	// 	}
+	// }
 	
-	function set($data) {
+	function set($data, $insertid = false) {
+		global $_DB;
 		global $config;
-		$_DB = new database($config->database);
-		if (isset($data['id']) && $data['id']) {
+		if (!$insertid && (isset($data['id']) && $data['id'])) {
 			//:: UPDATE ::
 			//Grid
 			$obj_grid = [
 				'name' => $data['name'],
-				'table_name' => $data['table']
+				'table_name' => $data['table'],
+				'target_schema' => $data['target_schema']
 			];
-			$obj_grid_id = $_DB->queryToSingleVal("UPDATE grids SET ".$this->utils->arrayToQuery('update', $obj_grid)." WHERE grid_id = {$data['id']} RETURNING grid_id");
+			$obj_grid_id = $_DB->queryToSingleVal("UPDATE {$this->table} SET ".$this->utils->arrayToQuery(['action' => 'update', 'array' => $obj_grid, 'where' => " WHERE {$this->primaryKey} = {$data['id']}", 'return' => $this->primaryKey]));
 			
 			//Grid Fields
-			$updateParams = [
-				'grid_id' => 'excluded.grid_id',
-				'name' => 'excluded.name',
-				'column_name' => 'excluded.column_name',
-				'type' => 'excluded.type',
-				'origin' => 'excluded.origin'
-			];
+			$obj_grid_fields_id = [];
+
 			$obj_grid_fields = array_map(function($field) use ($obj_grid_id) {
-				return [
-					'field_id' => $field['id']?$field['id']:'DEFAULT',
-					'grid_id' => $obj_grid_id,
+				$newfield = [
+					"{$this->primaryKey}" => $obj_grid_id,
 					'name' => $field['name'],
 					'column_name' => $field['column'],
 					'type' => $field['type'],
-					'origin' => $field['origin']
+					'origin' => $field['origin'],
+					'orden' => $field['orden']
 				];
+				if ($field['id']) {
+					$newfield[$this->primaryKeyII] = $field['id'];
+				}
+				return $newfield;
 			}, $data['fields']);
 
-			$obj_grid_fields_id = $_DB->queryToArray("INSERT INTO grids_fields ".$this->utils->multipleArrayToInsert($obj_grid_fields)." ON CONFLICT (field_id) DO UPDATE SET ".$this->utils->arrayToQuery('update', $updateParams)." RETURNING field_id");
+			// utils::var_doom($obj_grid_fields, true);
+			// exit;
+
+			//Update
+			$obj_grid_fields_update = array_values(array_filter($obj_grid_fields, function($field) {
+				return array_key_exists($this->primaryKeyII, $field);
+			}));
+			if ($obj_grid_fields_update) {
+				foreach ($obj_grid_fields_update as $field) {
+					$field_id = $field[$this->primaryKeyII];
+					unset($field[$this->primaryKeyII]);
+					// echo "UPDATE {$this->tableII} SET ".$this->utils->arrayToQuery('update', $field)." WHERE {$this->primaryKeyII} = {$field_id}".PHP_EOL;
+					$_DB->queryToSingleVal("UPDATE {$this->tableII} SET ".$this->utils->arrayToQuery('update', $field)." WHERE {$this->primaryKeyII} = {$field_id}");
+					$obj_grid_fields_id[] = [
+						"{$this->primaryKeyII}" => $field_id
+					];
+				}
+			}
+			// exit;
+
+			//Insert
+			$obj_grid_fields_insert = array_values(array_filter($obj_grid_fields, function($field) {
+				return !array_key_exists($this->primaryKeyII, $field);
+			}));
+			if ($obj_grid_fields_insert) {
+				$obj_grid_fields_insert = array_map(function($field) {
+					unset($field[$this->primaryKeyII]);
+					return $field;
+				}, $obj_grid_fields_insert);
+				$insert_res = $_DB->queryToArray("INSERT INTO {$this->tableII} ".$this->utils->multipleArrayToInsert($obj_grid_fields_insert, $this->primaryKeyII));
+				foreach ($insert_res as $inserted) {
+					$obj_grid_fields_id[] = $inserted;
+				}
+			}
+
+			//UPSERT SYNTAX
+			// $updateParams = [
+			// 	"{$this->primaryKey}" => "excluded.{$this->primaryKey}",
+			// 	'name' => 'excluded.name',
+			// 	'column_name' => 'excluded.column_name',
+			// 	'type' => 'excluded.type',
+			// 	'origin' => 'excluded.origin'
+			// ];
+			// $obj_grid_fields = array_map(function($field) use ($obj_grid_id) {
+			// 	return [
+			// 		"{$this->primaryKeyII}" => $field['id']?$field['id']:'DEFAULT',
+			// 		"{$this->primaryKey}" => $obj_grid_id,
+			// 		'name' => $field['name'],
+			// 		'column_name' => $field['column'],
+			// 		'type' => $field['type'],
+			// 		'origin' => $field['origin']
+			// 	];
+			// }, $data['fields']);
+
+			// $obj_grid_fields_id = $_DB->queryToArray("INSERT INTO {$this->tableII} ".$this->utils->multipleArrayToInsert($obj_grid_fields)." ON CONFLICT ({$this->primaryKeyII}) DO UPDATE SET ".$this->utils->arrayToQuery('update', $updateParams)." RETURNING {$this->primaryKeyII}");
+			//UPSERT SYNTAX
+
 			if ($obj_grid_fields_id) {
-				$deleted_grid_fields = $_DB->queryToArray("DELETE FROM grids_fields WHERE grid_id = {$obj_grid_id} AND field_id NOT IN ".$this->utils->arrayToQuery('in', array_column($obj_grid_fields_id, 'field_id'))." RETURNING field_id");
+				if ($config->database->type == "mssql") {
+					$deleted_grid_fields = $_DB->queryToArray("DELETE FROM {$this->tableII} ".$this->utils->returnToQuery($this->primaryKeyII, 'deleted')." WHERE {$this->primaryKey} = {$obj_grid_id} AND {$this->primaryKeyII} NOT IN ".$this->utils->arrayToQuery('in', array_column($obj_grid_fields_id, $this->primaryKeyII)));
+				} else if ($config->database->type == "pgsql") {
+					$deleted_grid_fields = $_DB->queryToArray("DELETE FROM {$this->tableII} WHERE {$this->primaryKey} = {$obj_grid_id} AND {$this->primaryKeyII} NOT IN ".$this->utils->arrayToQuery('in', array_column($obj_grid_fields_id, $this->primaryKeyII))." ".$this->utils->returnToQuery($this->primaryKeyII, 'deleted'));
+				}
+				
 				if ($deleted_grid_fields) {
-					$_DB->queryToArray("DELETE FROM fields_attrs WHERE field_id IN ".$this->utils->arrayToQuery('in', array_column($deleted_grid_fields, 'field_id')));
+					$_DB->queryToArray("DELETE FROM {$this->tableIII} WHERE {$this->primaryKeyII} IN ".$this->utils->arrayToQuery('in', array_column($deleted_grid_fields, $this->primaryKeyII)));
 				}
 			}
 			
+			
 			//Field Attrs
+			$deleteAttrs = [];
+			$insertAttrs = [];
 			foreach(array_keys($data['fields']) as $keyf) {
+				//Si la llave attr está seteada
 				if (isset($data['fields'][$keyf]['attr'])) {
+					//Arreglo para insert
 					$obj_field_attrs = array_map(function($row) use ($keyf, $obj_grid_fields_id) {
 						return [
-							'field_id' => $obj_grid_fields_id[$keyf]['field_id'],
+							"{$this->primaryKeyII}" => $obj_grid_fields_id[$keyf][$this->primaryKeyII],
 							'attr' => $row
 						];
 					}, array_unique($data['fields'][$keyf]['attr']));
-					$qryDelete = "DELETE FROM fields_attrs WHERE field_id IN ".$this->utils->arrayToQuery('in', array_column($obj_field_attrs, 'field_id'));
-					$_DB->query($qryDelete);
-					$qryInsert = "INSERT INTO fields_attrs ".$this->utils->multipleArrayToInsert($obj_field_attrs);
-					$_DB->query($qryInsert);
-					error_log($qryInsert);
+					//Eliminar existentes
+					$deleteAttrs = array_merge($deleteAttrs, array_column($obj_field_attrs, $this->primaryKeyII));
+					//Insertar
+					$insertAttrs = array_merge($insertAttrs, $obj_field_attrs);
 				} else {
-					$qryDelete = "DELETE FROM fields_attrs WHERE field_id = ".$obj_grid_fields_id[$keyf]['field_id'];
-					$_DB->query($qryDelete);
+					//Eliminar existentes
+					$deleteAttrs = array_merge($deleteAttrs, [$obj_grid_fields_id[$keyf][$this->primaryKeyII]]);
 				}
+			}
+
+			//Delete Attrs
+			if ($deleteAttrs) {
+				$deleteAttrs = array_unique($deleteAttrs);
+				$qryDelete = "DELETE FROM {$this->tableIII} WHERE {$this->primaryKeyII} IN ".$this->utils->arrayToQuery('in', $deleteAttrs);
+				$_DB->query($qryDelete);
+			}
+
+			//Insert Attrs
+			if ($insertAttrs) {
+				$qryInsert = "INSERT INTO {$this->tableIII} ".$this->utils->multipleArrayToInsert($insertAttrs);
+				$_DB->query($qryInsert);
+				// error_log($qryInsert);
 			}
 
 			//Success
 			return [
 				'type' => 'success',
 				'title' => 'Cambios guardados',
-				'text' => 'Los cambios fueron guardados con éxito'
+				'text' => 'Los cambios fueron guardados con éxito',
+				'id' => $obj_grid_id
 			];
 			
 		} else {
@@ -264,29 +392,55 @@ class sys_grid_model {
 			//Grid
 			$obj_grid = [
 				'name' => $data['name'],
-				'table_name' => $data['table']
+				'table_name' => $data['table'],
+				'target_schema' => $data['target_schema']
 			];
-			$obj_grid_id = $_DB->queryToSingleVal("INSERT INTO grids ".$this->utils->arrayToQuery('insert', $obj_grid)." RETURNING grid_id");
-			//Grid Fields
-			$obj_grid_fields = array_map(function($field) use ($obj_grid_id) {
+			if ($insertid && isset($data['id'])) $obj_grid['grid_id'] = $data['id'];
+			//Validar que no exista tabla con el mismo nombre
+			$obj_grid_id = $_DB->queryToSingleVal("SELECT {$this->primaryKey} FROM {$this->table} WHERE table_name = '{$data['table']}'");
+			if ($obj_grid_id) {
+				//Success
 				return [
-					'grid_id' => $obj_grid_id,
+					'type' => 'warning',
+					'title' => 'Cambios no guardados',
+					'text' => 'Ya existe un registro con el mismo nombre de tabla',
+					'id' => $obj_grid_id
+				];
+			}
+			if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids ON");
+			$obj_grid_id = $_DB->queryToSingleVal("INSERT INTO {$this->table} ".$this->utils->arrayToQuery(['action' => 'insert', 'array' => $obj_grid, 'return' => $this->primaryKey]));
+			if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids OFF");
+			
+			//Grid Fields
+			$obj_grid_fields = array_map(function($field) use ($obj_grid_id, $insertid) {
+				$tmpfield = [
+					"{$this->primaryKey}" => $obj_grid_id,
 					'name' => $field['name'],
 					'column_name' => $field['column'],
-					'type' => $field['type']
+					'type' => $field['type'],
+					'origin' => $field['origin'],
+					'orden' => $field['orden']
 				];
+				if ($insertid && isset($field['id'])) $tmpfield['field_id'] = $field['id'];
+				return $tmpfield;
 			}, $data['fields']);
-			$obj_grid_fields_id = $_DB->queryToArray("INSERT INTO grids_fields ".$this->utils->multipleArrayToInsert($obj_grid_fields)." RETURNING field_id");
+			
+            if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids_fields ON");
+			$obj_grid_fields_id = $_DB->queryToArray("INSERT INTO {$this->tableII} ".$this->utils->multipleArrayToInsert($obj_grid_fields, $this->primaryKeyII));
+			if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids_fields OFF");
+			
 			//Field Attrs
 			foreach(array_keys($data['fields']) as $keyf) {
 				if (isset($data['fields'][$keyf]['attr'])) {
 					$obj_field_attrs = array_map(function($row) use ($keyf, $obj_grid_fields_id) {
 						return [
-							'field_id' => $obj_grid_fields_id[$keyf]['field_id'],
+							"{$this->primaryKeyII}" => $obj_grid_fields_id[$keyf][$this->primaryKeyII],
 							'attr' => $row
 						];
 					}, array_unique($data['fields'][$keyf]['attr']));
-					$_DB->query("INSERT INTO fields_attrs ".$this->utils->multipleArrayToInsert($obj_field_attrs));
+					if ($obj_field_attrs) {
+						$_DB->query("INSERT INTO {$this->tableIII} ".$this->utils->multipleArrayToInsert($obj_field_attrs));
+					}
 				}
 			}
 
@@ -294,91 +448,22 @@ class sys_grid_model {
 			return [
 				'type' => 'success',
 				'title' => 'Cambios guardados',
-				'text' => 'Los cambios fueron guardados con éxito'
+				'text' => 'Los cambios fueron guardados con éxito',
+				'id' => $obj_grid_id
 			];
 		}
 	}
 
-    function setObj($data) {
-		$grids = $this->grids;
-        if (isset($data['id']) && $data['id']) {
-			//Update
-			$found = false;
-			//Buscar id de objeto en arreglo local
-			foreach(array_keys($grids) as $key) {
-				if ($grids[$key]->id == $data['id']) {
-					$found = true;
-					//Objeto encontrado, setear nuevos valores
-					$obj = $grids[$key];
-
-					//Valores base
-					$obj->name = $data['name'];
-					$obj->table = $data['table'];
-
-					//Subregistros
-					foreach(array_keys($data['fields']) as $keyf) {
-						$data['fields'][$keyf] = (object)$data['fields'][$keyf];
-						$data['fields'][$keyf]->id = (int)$data['fields'][$keyf]->id;
-					}
-
-					$obj->fields = $this->generateIDs('id', $data['fields']);
-
-					$grids[$key] = $obj;
-				}
-			}
-			if ($found) {
-				return $this->setFile($grids);
-			} else {
-				return $found;
-			}
-			
-		} else {
-			//New
-			$data = (object)$data;
-			$data->id = null;
-			//Generar ids de subregistros
-			//Subregistros
-			foreach(array_keys($data->fields) as $key) {
-				$data->fields[$key] = (object)$data->fields[$key];
-			}
-			$data->fields = $this->generateIDs('id', $data->fields);
-
-			//Meter regsitro en arreglo
-			$grids[] = $data;
-
-			//Generar id
-			$grids = $this->generateIDs('id', $grids);
-
-			//Guardar
-			return $this->setFile($grids);
-		}
-	}
-	
-	function generateIDs($id, $data) {
-		//Obtener ID más alto
-		$highestid = 0;
-		foreach($data as $field) {
-			if ($field->$id && $highestid < $field->$id) {
-				$highestid = $field->$id;
-			}
-		}
-		//Generar ID a nuevos registros
-		foreach(array_keys($data) as $key) {
-			$data[$key] = $data[$key];
-			if (!$data[$key]->$id) {
-				$highestid++;
-				$data[$key]->$id = $highestid;
-			}
-		}
-		return $data;
-	}
-
     function delete($list) {
-		$grids = $this->grids;
-		$grids = array_filter($grids, function($row) use ($list) {
-			return !in_array($row->id, $list); 
-		});
-		return $this->setFile($grids);
+		global $_DB;
+		$_DB->query("DELETE FROM sys_fields_attrs WHERE field_id IN (SELECT field_id FROM sys_grids_fields WHERE grid_id IN ".$this->utils->arrayToQuery('in', $list).")");
+		$_DB->query("DELETE FROM sys_grids_fields WHERE grid_id IN ".$this->utils->arrayToQuery('in', $list));
+		$_DB->query("DELETE FROM sys_grids WHERE grid_id IN ".$this->utils->arrayToQuery('in', $list));
+		return [
+            'type' => 'success',
+            'title' => 'Registros eliminados',
+            'text' => 'Se eliminaron '.count($list).' registros!'
+        ];
     }
 
     function getCamposDTConfig() {
@@ -389,28 +474,51 @@ class sys_grid_model {
 				'title' => "ID",
                 'data' => 'id',
                 'visible' => false,
-                'searchable' => false,
+				'searchable' => false,
+				'orderable' => false,
                 'editType' => 'id'
+			],
+			[
+				'targets' => $dtNum++,
+				'title' => "Orden",
+				'data' => 'orden',
+				'width' => "10px",
+				'visible' => true,
+				'orderable' => false
 			],
 			[
 				'targets' => $dtNum++,
 				'title' => "Nombre",
 				'data' => 'name',
+				'orderable' => false,
 				'editType' => 'string'
             ],
             [
 				'targets' => $dtNum++,
 				'title' => "Columna",
 				'data' => 'column',
+				'orderable' => false,
 				'editType' => 'string'
             ],
             [
 				'targets' => $dtNum++,
 				'title' => "Tipo",
 				'data' => 'type',
-				'width' => "100px",
+				'width' => "150px",
+				'orderable' => false,
 				'editType' => 'select',
-				//editConfig => [liveSearch => true],
+				// 'editConfig' => [
+				// 	"efields" => [
+				// 		"int" => ["attr"],
+				// 		"float" => ["attr"],
+				// 		"text" => ["attr"],
+				// 		"check" => ["attr"],
+				// 		"select" => ["attr", "origen"],
+				// 		"bselect" => ["attr", "origen"],
+				// 		"dtpicker" => ["attr"],
+				// 		"rut" => ["attr"]
+				// 	]
+				// ],
 				'editData' => array_map(function($row) {
 					return ['id' => $row, 'text' => $row];
 				}, $this->fieldTypes)
@@ -420,6 +528,8 @@ class sys_grid_model {
 				'title' => "Origen",
 				'data' => 'origin',
 				'width' => "85px",
+				// 'visible' => false,
+				'orderable' => false,
 				'editType' => 'bselect',
 				'editConfig' => [
 					'liveSearch' => true,
@@ -431,8 +541,10 @@ class sys_grid_model {
 				'targets' => $dtNum++,
 				'title' => "Atributos",
 				'data' => 'attr',
+				// 'visible' => false,
 				'editType' => 'bselect',
 				'width' => "185px",
+				'orderable' => false,
 				'editConfig' => [
 					'liveSearch' => true,
 					'width' => '200px',
@@ -443,6 +555,7 @@ class sys_grid_model {
 					return ['id' => $key, 'text' => $val];
 				}, array_keys($this->fieldAttributes), $this->fieldAttributes)
 			],
+			
 			[
 				'targets' => $dtNum++,
 				'title' => "Acciones",
@@ -450,6 +563,7 @@ class sys_grid_model {
 				'data' => null,
 				'width' => "105px",
 				'defaultContent' => '',
+				'orderable' => false,
 				'editConfig' => [
 					'deleteExisting' => true,
 					'editExisting' => true
@@ -458,111 +572,49 @@ class sys_grid_model {
 		];
     }
     function getCamposDTEmptyRow() {
-        return [
-            'id' => null,
-            'name' => null,
-            'column' => null,
-			'type' => null,
-			'origin' => null,
-			'attr' => null,
-            'estado' => 'edit'
-        ];
+		$columns = $this->getCamposDTConfig();
+		$columns = array_values(array_filter($columns, function($col) {
+			return $col['data'] != null;
+		}));
+		$finalRow = [];
+		foreach ($columns as $col) {
+			$finalRow[$col['data']] = null;
+		}
+		$finalRow['estado'] = 'edit';
+		return $finalRow;
+        // return [
+        //     'id' => null,
+        //     'name' => null,
+        //     'column' => null,
+		// 	'type' => null,
+		// 	'origin' => null,
+		// 	'attr' => null,
+        //     'estado' => 'edit'
+        // ];
 	}
 	
 	function getGridCboList() {
+		global $_DB;
+		return $_DB->queryToArray("SELECT {$this->primaryKey} AS id, name AS text FROM {$this->table}");
+	}
+	
+	function consolidate($id, $schema = null) {
+		global $_DB;
 		global $config;
-		$_DB = new database($config->database);
-		return $_DB->queryToArray("SELECT grid_id AS id, name AS text FROM grids");
-	}
-	
-	function getCampos($where) {
-		global $_DB;
-		//Sin where no hay data amigo
-		if (!$where) return [];
-		
-		$sql = "SELECT
-					carga_id,
-					carga_rut,
-					carga_nombre,
-					carga_fecha_nac,
-					carga_fecha_ven,
-					carga_fecha_ing,
-					carga_tipo,
-					carga_parentesco,
-					activo,
-					null as estado
-				FROM r_trabajadores_cargas 
-				WHERE ".arrayToQuery("and", $where)." AND (NOT eliminado = '1' OR eliminado IS NULL)
-				ORDER BY carga_id";
-		return $_DB->query_to_array($sql);
-	}
-	
-	function setCampos($id, $cargasJson) {
-		global $_DB;
-		$existingCargas = $this->getCargas([
-			'trabajador_id' => $id
-		]);
-		$cargas = json_decode($cargasJson, true);
 
-		//Acciones para las cargas que vienen en el objeto
-		foreach (array_keys($cargas) as $key) {
-			/* id, rut, nombre, fecha_nacimiento, fecha_vencimiento, fecha_ingreso, tipo, parentesco, activo, estado */
-			$data = [
-				'carga_rut' => $cargas[$key]['carga_rut'],
-				'carga_nombre' => $cargas[$key]['carga_nombre'],
-				'carga_fecha_nac' => $cargas[$key]['carga_fecha_nac'],
-				'carga_fecha_ven' => $cargas[$key]['carga_fecha_ven'],
-				'carga_fecha_ing' => $cargas[$key]['carga_fecha_ing'],
-				'carga_tipo' => $cargas[$key]['carga_tipo'],
-				'carga_parentesco' => $cargas[$key]['carga_parentesco'],
-				'activo' => $cargas[$key]['activo']
-			];
-			if ($cargas[$key]['carga_id']) {
-				//Update
-				$_DB->query("UPDATE r_trabajadores_cargas SET ".arrayToQuery("update", $data)." WHERE carga_id = {$cargas[$key]['carga_id']}");
+		if ($config->database->type == 'pgsql') {
+			if (!$schema) {
+				$schema = 'public';
+				$_DB->query("SET search_path TO public");
 			} else {
-				//Insert
-				$data = array_replace($data, [
-					'trabajador_id' => $id
-				]);
-				$_DB->query("INSERT INTO r_trabajadores_cargas ".arrayToQuery("insert", $data));
+				$_DB->query("SET search_path TO public, {$schema}");
+			}
+		} else if ($config->database->type == 'mssql') {
+			if (!$schema) {
+				$schema = 'dbo';
 			}
 		}
 
-		//Acciones para las cargas que no vienen en el objeto (eliminar)
-		$idFinales = array_column($cargas, 'carga_id');
-		$idExistentes = array_column($existingCargas, 'carga_id');
-		foreach ($idExistentes as $oldId) {
-			if (!in_array($oldId, $idFinales)) {
-				//Update
-				$_DB->query("UPDATE r_trabajadores_cargas SET eliminado = 1 WHERE carga_id = {$oldId}");
-			}
-		}
-	}
-	
-	//Save to file / Response
-    function setFile($grids) {
-		$result = file_put_contents(root."/grids.json", json_encode($grids, JSON_PRETTY_PRINT));
-        if (!$result) {
-            //Error
-            return [
-                'type' => 'warning',
-                'title' => 'Cambios no guardados',
-				'text' => 'Hubo un problema al guardar el fichero',
-				'result' => $result
-            ];
-        } else {
-            //Success
-            return [
-                'type' => 'success',
-                'title' => 'Cambios guardados',
-                'text' => 'Los cambios fueron guardados con éxito',
-				'result' => $result
-            ];
-        }
-	}
-	
-	function consolidate($id) {
 		//Traer datos de grilla
 		$data = $this->get($id);
 
@@ -573,20 +625,50 @@ class sys_grid_model {
 			if (in_array($field->type, ['rut', 'text'])) {
 				$columns[$field->column][] = 'varchar';
 			}
-			if (in_array($field->type, ['int', 'select', 'bselect', 'check'])) {
+			if (in_array($field->type, ['textarea'])) {
+				$columns[$field->column][] = 'varcharmax';
+			}
+			if (in_array($field->type, ['int', 'check'])) {
 				$columns[$field->column][] = 'int';
+			}
+			if (in_array($field->type, ['select', 'bselect'])) {
+				if ($field->origin) {
+					$originTable = $this->get($field->origin);
+					$primary = array_values(array_filter($originTable->fields, function($ofield) {
+						return in_array('primary', $ofield->attr);
+					}));
+					if ($primary) {
+						$primary = $primary[0];
+						if (in_array($primary->type, ['rut', 'text', 'textarea'])) {
+							$columns[$field->column][] = 'varchar';
+						} else {
+							$columns[$field->column][] = 'int';
+						}
+					} else {
+						$columns[$field->column][] = 'int';
+					}
+				} else {
+					$columns[$field->column][] = 'int';
+				}
 			}
 			if (in_array($field->type, ['float'])) {
 				$columns[$field->column][] = 'float';
 			}
-			if (in_array($field->type, ['dtpicker'])) {
+			if (in_array($field->type, ['dtpicker', 'datetime'])) {
 				$columns[$field->column][] = 'timestamp';
+			}
+			if (in_array($field->type, ['date', 'month'])) {
+				$columns[$field->column][] = 'date';
+			}
+			if (in_array($field->type, ['time'])) {
+				$columns[$field->column][] = 'time';
 			}
 		}
 
 		//Crear tabla
 		$this->utils->arrayToTable([
-            'table' => $data->table,
+			'table' => $data->table,
+			'schema' => $schema,
             'columnDefs' => $columns,
             'delete' => false,
             'duplicate' => false

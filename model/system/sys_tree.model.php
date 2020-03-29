@@ -2,23 +2,22 @@
 
 class sys_tree_model {
 
+    var $table = 'sys_recursos';
+	var $primaryKey = 'recurso_id';
+
     function __construct() {
         $this->utils = new utils();
-        if (file_exists(root."/tree.json")) {
-            $this->tree = json_decode(file_get_contents(root."/tree.json"));
-        }
-        if (!isset($this->tree)) {
-            $this->tree = [];
-        }
+        $this->sys_grid_model = new sys_grid_model();
     }
 
     function list() {
         global $config;
 
-        $table = 'recursos T1  
-        RIGHT JOIN recursos T2 ON T1.recurso_id = T2.parent_id
-        LEFT JOIN grids GR ON GR.grid_id = T2.grid_id';
-        $primaryKey = 'T2.recurso_id';
+        $table = "{$this->table} T1  
+        RIGHT JOIN {$this->table} T2 ON T1.{$this->primaryKey} = T2.parent_id
+        LEFT JOIN {$this->sys_grid_model->table} GR ON GR.{$this->sys_grid_model->primaryKey} = T2.{$this->sys_grid_model->primaryKey}";
+        $primaryKey = "T2.{$this->primaryKey}";
+
         $dtNum = 0;
         $columns = [
             [
@@ -56,14 +55,16 @@ class sys_tree_model {
 				'dt' => $dtNum++,
 				'db' => 'T2.funcion',
 				'alias' => 'funcion',
-				'title' => 'URL'
+                'title' => 'URL',
+                'visible' => false
             ],
             [
 				//DB
 				'dt' => $dtNum++,
 				'db' => "GR.name",
 				'alias' => 'grilla',
-				'title' => 'Grilla'
+                'title' => 'Grilla',
+                'visible' => false
             ],
             [
 				//DB
@@ -93,7 +94,7 @@ class sys_tree_model {
 				'formatter' => function($d, $row) {
 					ob_start(); ?>
 						<div class="btn-group btn-group" role="group" style="width: auto;">
-							<button class="btn btn-success main-edit" title="Editar registro" type="button"><span aria-hidden="true" class="fa fa-pencil"></span></button>
+                            <button class="btn btn-success main-edit" title="Editar registro" type="button"><i class="fas fa-edit"></i></button>
 						</div>
 					<?php return ob_get_clean();
 				},
@@ -119,6 +120,47 @@ class sys_tree_model {
 
 		return SSP::simple( $_POST, $config->database, $table, $primaryKey, $columns, $filtro);
     }
+
+    function getCampos() {
+        return [
+            [
+                'id' => 1,
+                'activo' => false,
+                'key' => 'create',
+                'permiso' => 'Nuevo'
+            ],
+            [
+                'id' => 2,
+                'activo' => false,
+                'key' => 'read',
+                'permiso' => 'Ver'
+            ],
+            [
+                'id' => 3,
+                'activo' => false,
+                'key' => 'update',
+                'permiso' => 'Editar'
+            ],
+            [
+                'id' => 4,
+                'activo' => false,
+                'key' => 'delete',
+                'permiso' => 'Eliminar'
+            ],
+            [
+                'id' => 5,
+                'activo' => false,
+                'key' => 'export',
+                'permiso' => 'Exportar'
+            ],
+            [
+                'id' => 6,
+                'activo' => false,
+                'key' => 'import',
+                'permiso' => 'Importar'
+            ]
+        ];
+    }
     
     function getCamposDTConfig() {
         $dtNum = 0;
@@ -130,18 +172,25 @@ class sys_tree_model {
                 'visible' => false,
                 'searchable' => false,
                 'editType' => 'id'
-			],
-			[
-				'targets' => $dtNum++,
-				'title' => "Key",
-				'data' => 'key',
-				'editType' => 'string'
             ],
             [
 				'targets' => $dtNum++,
 				'title' => "Permiso",
 				'data' => 'permiso',
-				'editType' => 'string'
+				// 'editType' => 'string'
+            ],
+            [
+				'targets' => $dtNum++,
+                'title' => "Key",
+                'data' => 'key',
+                'width' => "100px",
+            ],
+            [
+                'targets' => $dtNum++,
+                'title' => 'Activo',
+                'data' => 'activo',
+                'width' => "30px",
+                'editType' => 'checkbox'
             ],
 			[
 				'targets' => $dtNum++,
@@ -151,7 +200,7 @@ class sys_tree_model {
 				'width' => "105px",
 				'defaultContent' => '',
 				'editConfig' => [
-					'deleteExisting' => true,
+					'deleteExisting' => false,
 					'editExisting' => true
 				]
 			]
@@ -161,6 +210,7 @@ class sys_tree_model {
     function getCamposDTEmptyRow() {
         return [
             'id' => null,
+            'activo' => true,
             'key' => null,
             'permiso' => null,
             'estado' => 'edit'
@@ -173,37 +223,6 @@ class sys_tree_model {
         $config->superuser->username = $data->username;
         $config->superuser->password = $data->password;
         return $this->setFile($config);
-    }
-
-    //DB
-    function setDB($data) {
-        global $config;
-        $config->database->host = $data->host;
-        $config->database->name = $data->name;
-        $config->database->user = $data->user;
-        $config->database->pass = $data->pass;
-        $config->database->type = $data->type;
-        return $this->setFile($config);
-    }
-
-    function testDB($data) {
-        $time_start = microtime(true);
-        $db = new database($data);
-        $execution_time = round((microtime(true) - $time_start) * 1000);
-
-        if (!is_string($db->conn)) {
-            return [
-                'type' => 'success',
-                'title' => 'Conexión exitosa',
-                'html' => 'Fue posible conectar con los parámetros dispuestos<br><small><span class="fa fa-tachometer"></span> '.$execution_time.' ms</small>'
-            ];
-        } else {
-            return [
-                'type' => 'warning',
-                'title' => 'Conexión fallida',
-                'html' => "No fue posible conectar con los parámetros dispuestos<br><pre>".$db->conn."</pre>"
-            ];
-        }
     }
 
     //Login
@@ -219,53 +238,47 @@ class sys_tree_model {
         $data->testpass;
     }
 
-    //Save to file / Response
-    function setFile($config) {
-        if (!file_put_contents(root."/config.json", json_encode($config, JSON_PRETTY_PRINT))) {
-            //Error
-            return [
-                'type' => 'warning',
-                'title' => 'Cambios no guardados',
-                'text' => 'Hubo un problema al guardar el fichero'
-            ];
+    function set($data_crud, $import = false) {
+        global $_DB;
+        if (isset($data_crud["permisos_obj"])) {
+            //Quitar los que no están marcados
+            $data_crud["permisos_obj"] = array_values(array_filter($data_crud["permisos_obj"], function($permiso) {
+                return $this->utils->is_true($permiso["activo"]);
+            }));
+            //Crear arreglo sólo con los campos relevantes
+            $data_crud["permisos_obj"] = array_map(function($permiso) {
+                return [
+                    'key' => $permiso["key"],
+                    'permiso' => $permiso["permiso"]
+                ];
+            }, $data_crud["permisos_obj"]);
+            //Setear como json para la consulta
+            $data_crud["permisos_obj"] = json_encode($data_crud["permisos_obj"]);
         } else {
-            //Success
-            return [
-                'type' => 'success',
-                'title' => 'Cambios guardados',
-                'text' => 'Los cambios fueron guardados con éxito'
-            ];
+            $data_crud["permisos_obj"] = null;
         }
-    }
-
-    function set($data_crud) {
-        // var_dump(json_encode($data_crud["permisos_obj"]));
-        // exit;
-        global $config;
-        $_DB = new database($config->database);
-        $data_crud["permisos_obj"] = array_map(function($permiso) {
-            return [
-                'key' => $permiso["key"],
-                'permiso' => $permiso["permiso"]
-            ];
-        }, $data_crud["permisos_obj"]);
+        
         $data = [
             'parent_id' => $data_crud["padre"],
             'texto' => $data_crud["name"],
             'icono' => $data_crud["icono"],
             'funcion' => $data_crud["path"],
+            'orden' => $data_crud["orden"],
             'grid_id' => $data_crud["grilla"],
-            'permisos_obj' => json_encode($data_crud["permisos_obj"])
+            'permisos_obj' => $data_crud["permisos_obj"]
         ];
-        if(isset($data_crud["id"])) {
-            $_DB->queryToSingleVal("UPDATE recursos SET ".$this->utils->arrayToQuery('update', $data)." WHERE recurso_id = {$data_crud['id']}");
+        if(!$import && isset($data_crud["id"])) {
+            $_DB->queryToSingleVal("UPDATE {$this->table} SET ".$this->utils->arrayToQuery('update', $data)." WHERE {$this->primaryKey} = {$data_crud['id']}");
             return [
                 'type' => 'success',
                 'title' => 'Recurso editado!',
                 'text' => 'El recurso '.$data_crud["name"].' ha sido editado con éxito'
             ]; 
-        } else {          
-            $_DB->query("INSERT INTO recursos ".$this->utils->arrayToQuery("insert", $data));
+        } else {
+            if ($import) $data["{$this->primaryKey}"] = $data_crud["id"];
+            if ($import) $_DB->query("SET IDENTITY_INSERT {$this->table} ON");
+            $_DB->query("INSERT INTO {$this->table} ".$this->utils->arrayToQuery("insert", $data));
+            if ($import) $_DB->query("SET IDENTITY_INSERT {$this->table} OFF");
             return [
                 'type' => 'success',
                 'title' => 'Recurso creado',
@@ -275,54 +288,77 @@ class sys_tree_model {
     }
 
     function load_father() {
-        global $config;
-        $_DB = new database($config->database);
-        $resources = $_DB->queryToArray(
-            "SELECT 
-                recurso_id, 
-                texto 
-            FROM 
-                recursos"
-        );
-        $grids = $_DB->queryToArray(
-            "SELECT 
-                grid_id, 
-                name 
-            FROM 
-            grids"
-        );
-        $res = [
-            'resources' => $resources,
-            'grids' => $grids
+        global $_DB;
+        return [
+            'resources' => $_DB->queryToArray("SELECT {$this->primaryKey}, texto, icono FROM {$this->table} WHERE (eliminado != 1 OR eliminado IS NULL)"),
+            'grids' => $_DB->queryToArray("SELECT {$this->sys_grid_model->primaryKey}, name FROM {$this->sys_grid_model->table}")
         ];
+    }
+
+    function get($id = null, $export = false) {
+        global $_DB;
+        if (!$id) {
+            return $_DB->queryToArray("SELECT {$this->primaryKey}, parent_id, texto, icono, funcion, orden, grid_id, permisos_obj FROM {$this->table} WHERE (eliminado != 1 OR eliminado IS NULL)");
+        }
+        $campos = $this->getCampos();
+        $res = $_DB->queryToArray(
+            "SELECT
+                ".($export?"{$this->primaryKey} AS id,":"")."
+                parent_id".($export?" AS padre":"").", 
+                texto".($export?" AS name":"").", 
+                icono, 
+                funcion".($export?" AS path":"").", 
+                orden, 
+                grid_id".($export?" AS grilla":"").", 
+                permisos_obj 
+            FROM 
+                {$this->table} 
+            WHERE (eliminado != 1 OR eliminado IS NULL) AND {$this->primaryKey} = {$id}");
+        $res = (object)$res[0];
+        $res->permisos_obj = json_decode($res->permisos_obj);
+        if (is_array($res->permisos_obj)) {
+            $selection = array_column($res->permisos_obj, 'key');
+            //Marcar los predeterminados
+            $permisos_final = array_map(function($row) use ($selection) {
+                $row['activo'] = in_array($row['key'], $selection);
+                return $row;
+            }, $campos);
+            //Agregar los adicionales
+            $current = array_column($campos, 'key');
+            
+            foreach($res->permisos_obj as $permiso) {
+                //Si la llave no está en el arreglo de ítems por defecto...
+                if (!in_array($permiso->key, $current)) {
+                    //Hacer push al arreglo final sin id, para que sea eliminable
+                    $permisos_final[] = [
+                        'id' => null,
+                        'activo' => true,
+                        'key' => $permiso->key,
+                        'permiso' => $permiso->permiso
+                    ];
+                }
+            }
+            $res->permisos_obj = $permisos_final;
+        } else {
+            $res->permisos_obj = $campos;
+        }
+        
         return $res;
     }
 
-    function get($id) {
-        global $config;
-        $_DB = new database($config->database);
-        $res = $_DB->queryToArray("SELECT parent_id, texto, icono, funcion, grid_id, permisos_obj FROM recursos WHERE eliminado IS NULL AND recurso_id = {$id}");
-        $res = (object)$res[0];
-        $res->permisos_obj = json_decode($res->permisos_obj);
-        $i = 1;
-        foreach (array_keys($res->permisos_obj) as $key) {
-            $permiso = $res->permisos_obj[$key];
-            $res->permisos_obj[$key] = [
-                'id' => $i++,
-                'key' => $permiso->key,
-                'permiso' => $permiso->permiso
-            ];
-        }
-        return $res;
+    function getIconList() {
+        $iconos = $this->utils->get('https://glyphsearch.com/data/batch.json', [], true);
+        return array_filter($iconos, function($row) {
+            return isset($row['_tags']) ? in_array($row['_tags'][0], ['font-awesome', 'glyphicons', 'foundation']) : false;
+        });
     }
 
     function delete($list) {
-        global $config;
-        $_DB = new database($config->database);
+        global $_DB;
         $data = [
             'eliminado' => 1
         ];
-        $_DB->queryToArray("UPDATE recursos SET ".$this->utils->arrayToQuery('update', $data)." WHERE recurso_id IN ".$this->utils->arrayToQuery('in', $list));
+        $_DB->queryToArray("UPDATE {$this->table} SET ".$this->utils->arrayToQuery('update', $data)." WHERE {$this->primaryKey} IN ".$this->utils->arrayToQuery('in', $list));
         return [
             'type' => 'success',
             'title' => 'Registros eliminados',

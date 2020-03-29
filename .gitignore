@@ -1,7 +1,9 @@
-**/public/bower_components**
-**/public/dist**
-**/public/plugins**
-**/public/fonts**
-**/public/webfonts**
-/public/config.json
-php_errors.log
+/public/uploader/*
+/vendor
+/public/php_errors.log
+/database
+/tempcsv
+config.json
+config.demo.json
+config.qa.json
+config.prod.json

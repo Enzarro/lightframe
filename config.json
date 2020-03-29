@@ -3,6 +3,13 @@
         "username": "admin",
         "password": "admin"
     },
+    "socket": {
+        "enabled": false,
+        "routepost": false,
+        "public": "https:\/\/nodessl.buildingclerk.com:3000",
+        "local": "https:\/\/172.26.5.98:3000",
+        "system": "buildingclerk_dev"
+    },
     "global": {
         "path": "",
         "public_url": "http:\/\/localhost"

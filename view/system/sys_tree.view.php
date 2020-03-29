@@ -6,29 +6,123 @@ class sys_tree_view {
         utils::load([
             classes.'formitembuilder.php'
         ]);
-        $utils = new utils();
-        $iconos = $utils->get('https://glyphsearch.com/data/batch.json', [], true);
-        
-        $iconos = array_filter($iconos, function($row) {
-            return isset($row['_tags']) ? $row['_tags'][0] == 'font-awesome' || $row['_tags'][0] == 'glyphicons' : false;
-        });
+        $this->utils = new utils();
         $this->model = new sys_tree_model();
-        $data = $this->model->load_father();
+        
         $this->FormItem = new FormItem();
-        $this->form = [
-                'formid' => 'form-grid',
-                'roweven' => true,
-                'common' => [
-                    'horizontal' => true,
-                    'size' => 'sm',
-                    'stack' => true
+    }
+
+    function html($data = null) {
+        $fdata = $this->model->load_father();
+
+        $fiFather = new FormItem([
+            'label' => 'Padre',
+            'name' => 'dt-padre',
+            'type' => 'select',
+            // 'wrap' => false,
+            'prop' => [
+                'data-fitype="bselect"' => true,
+                "data-fisettings='".json_encode([
+                    "liveSearch" => true
+                ])."'" => true
+            ],
+            'type-params' => [
+                'table' => array_map(function($row){
+                    return [
+                        $row['recurso_id'],
+                        $row['texto'],
+                        [$row['icono']]
+                    ];
+                }, $fdata['resources']),
+                'data' => [
+                    ['icon']
                 ],
-                'fields' => [
-                    [
+                "includeNone" => true
+            ]
+        ]);
+
+        ob_start(); ?>
+
+        <div class="card">					
+            <div class="card-header border-bottom-blue-grey border-bottom-lighten-4 box-shadow-0 border-bottom-2 ">
+                <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
+                <button id="main-delete" class="btn btn-danger"><span class="fa fa-trash"></span> Eliminar</button>
+                <button id="main-export" class="btn btn-success" title='Exportar'><span class="fa fa-download"></span></button>	
+                <label for="main-import">
+                    <span class="btn btn-primary btn-file" title='Importar'><span class="fa fa-upload"></span></span>
+                </label>
+            </div>
+            <div class="card-body">
+                <?=$fiFather->build()?>
+                </form>
+                <table width="100%" class="table table-striped table-bordered table-hover" cellspacing="0" id="arbol"></table>					
+            </div>				
+        </div>	
+
+        <div class="modal animated fade" id="modal-default" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom-blue-grey border-bottom-lighten-4">
+                        <h4 class="modal-title"><?=$data['modalTitle']?></h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body "></div>
+                    <div class="modal-footer  border-top-blue-grey border-top-lighten-4">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fas fa-times"></i> Cerrar</button>
+                        <button id="save" type="button" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12" style="min-height: 100% !important;">
+            <form class="form form-horizontal" id="jsonxls" action="sys_grid/export" target="_blank"></form>
+        </div> 
+
+        <div class="col-md-12" style="min-height: 100% !important;">   
+            <input type="file" id="main-import" name="main-import" accept="application/JSON" style="display:none;">    
+        </div>
+
+        <?php return ob_get_clean();
+    }
+
+    function form($data = null) {
+        $iconos = $this->model->getIconList();
+        $fdata = $this->model->load_father();
+        $campos = $this->model->getCampos();
+
+        if (!$data) {
+            $campos = array_map(function($row) {
+                $row['activo'] = true;
+                return $row;
+            }, $campos);
+            $data = (object)[
+                'texto' => null,
+                'parent_id' => null,
+                'icono' => null,
+                'funcion' => null,
+                'orden' => null,
+                'grid_id' => null,
+                'permisos_obj' => $campos
+            ];
+        }
+
+        $form = [
+            'formid' => 'form-grid',
+            'roweven' => true,
+            'common' => [
+                'horizontal' => true,
+                'size' => 'sm',
+                'stack' => true
+            ],
+            'fields' => [
+                [
                     'label' => 'Nombre',
                     'name' => 'name',
                     'type' => 'text',
-                    'value' => '',
+                    'value' => $data->texto,
                     'prop' => [
                         'required' => true,
                     ]
@@ -37,6 +131,7 @@ class sys_tree_view {
                     'label' => 'Padre',
                     'name' => 'padre',
                     'type' => 'select',
+                    'value' => $data->parent_id,
                     'prop' => [
                         'data-fitype="bselect"' => true,
                         "data-fisettings='".json_encode([
@@ -44,19 +139,24 @@ class sys_tree_view {
                         ])."'" => true
                     ],
                     'type-params' => [
-                    'table' => array_map(function($row){
-                        return [
-                            $row['recurso_id'],
-                            $row['texto']
-                        ];
-                    }, $data['resources']),
-                    "includeNone" => true
+                        'table' => array_map(function($row){
+                            return [
+                                $row['recurso_id'],
+                                $row['texto'],
+                                [$row['icono']]
+                            ];
+                        }, $fdata['resources']),
+                        'data' => [
+                            ['icon']
+                        ],
+                        "includeNone" => true
                     ]
                 ], 
                 [
                     'label' => 'Icono',
                     'name' => 'icono',
                     'type' => 'select',
+                    'value' => $data->icono,
                     'prop' => [
                         'data-fitype="bselect"' => true,
                         "data-fisettings='".json_encode([
@@ -79,14 +179,22 @@ class sys_tree_view {
                     ]
                 ], 
                 [
-                'label' => 'Path',
-                'name' => 'path',
-                'type' => 'text'
+                    'label' => 'Path',
+                    'name' => 'path',
+                    'type' => 'text',
+                    'value' => $data->funcion
+                ],
+                [
+                    'label' => 'Orden',
+                    'name' => 'orden',
+                    'type' => 'text',
+                    'value' => $data->orden
                 ],
                 [
                     'label' => 'Grilla',
                     'name' => 'grilla',
                     'type' => 'select',
+                    'value' => $data->grid_id,
                     'prop' => [
                         'data-fitype="bselect"' => true,
                         "data-fisettings='".json_encode([
@@ -99,7 +207,7 @@ class sys_tree_view {
                             $row['grid_id'],
                             $row['name']
                         ];
-                    }, $data['grids']),
+                    }, $fdata['grids']),
                     "includeNone" => true
                     ]
                 ], 
@@ -107,9 +215,11 @@ class sys_tree_view {
                     'label' => 'Permisos del recurso',
                     'name' => 'permisos_obj',
                     'type' => 'table',
+                    'value' => $data->permisos_obj,
                     'type-params' => [
                         'config' => $this->model->getCamposDTConfig(),
-                        'empty' => $this->model->getCamposDTEmptyRow()
+                        'empty' => $this->model->getCamposDTEmptyRow(),
+                        'btn-new' => false
                     ],
                     'prop' => [
                         'data-fitype="dtable"' => true,
@@ -120,82 +230,8 @@ class sys_tree_view {
                 ]
             ]
         ];
-    }
 
-    function html() {
-        ob_start(); ?>
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="box">
-                    <div class="box-header">
-                        <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
-                        <button id="main-delete" class="btn btn-danger"><span class="fa fa-trash"></span> Eliminar</button>
-                    </div>
-                    <div class="box-body">
-                        <table id="arbol" class="table table-bordered table-striped"></table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal-default" style="display: none;">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span></button>
-                    <h4 class="modal-title">RECURSOS</h4>
-                </div>
-                <div class="modal-body">
-                    <p>One fine body…</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cerrar</button>
-                    <button id="save" type="button" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
-                </div>
-                </div>
-                <!-- /.modal-content -->
-            </div>
-            <!-- /.modal-dialog -->
-        </div>
-    
-        <?php return ob_get_clean();
-    }
-
-    function form($data = null) {
-        $form = $this->form;
-
-        if ($data) {
-            $form['fields'][0]["value"] = $data->texto;
-            $form['fields'][1]["value"] = $data->parent_id;
-            $form['fields'][2]["value"] = $data->icono;
-            $form['fields'][3]["value"] = $data->funcion;
-            $form['fields'][4]["value"] = $data->grid_id;
-            $form['fields'][5]["value"] = $data->permisos_obj;
-        } else {
-            $form['fields'][5]["value"] = [
-                [
-                    'id' => 1,
-                    'key' => 'create',
-                    'permiso' => 'Crear'
-                ],
-                [
-                    'id' => 2,
-                    'key' => 'read',
-                    'permiso' => 'Leer'
-                ],
-                [
-                    'id' => 3,
-                    'key' => 'update',
-                    'permiso' => 'Editar'
-                ],
-                [
-                    'id' => 4,
-                    'key' => 'delete',
-                    'permiso' => 'Eliminar'
-                ],
-            ];
-        }
+        
         ob_start(); ?>
         <?=$this->FormItem->buildArray($form)?>
         <?php return ob_get_clean();

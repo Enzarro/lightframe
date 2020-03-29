@@ -4,9 +4,6 @@ class sys_config_view {
 
     function __construct() {
         global $config;
-        utils::load([
-            classes.'formitembuilder.php'
-        ]);
         $this->FormItem = new FormItem();
         $this->formuser = [
             'formid' => 'form-user',
@@ -37,6 +34,21 @@ class sys_config_view {
                 'stack' => true
             ],
             'fields' => [[
+                'label' => 'Perfiles',
+                'name' => 'profiles',
+                'type' => 'select',
+                'type-params' => [
+                    'table' => array_map(function($dbcfg) {
+                        return [$dbcfg->profile, $dbcfg->profile];
+                    }, $config->database_list)
+                ],
+                'value' => $config->database->profile
+            ], [
+                'label' => 'Nombre perfil',
+                'name' => 'profile',
+                'type' => 'text',
+                'value' => $config->database->profile
+            ], [
                 'label' => 'Host',
                 'name' => 'host',
                 'type' => 'text',
@@ -108,17 +120,29 @@ class sys_config_view {
         }
         extract($data);
         ob_start(); ?>
-        <div class="row">
-            <div class="col-xs-12">
-                <!-- Frame Admin -->
-                <div class="box">
-                    <div class="box-header">
-                        <h3 class="box-title">Parámetros administrador frame</h3>
-                    </div>
+        <div class="card">			
+            <div class="card-body">		
+                <ul class="nav nav-tabs nav-underline nav-justified">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="user_tab-tab1" data-toggle="tab" href="#tab1" aria-controls="tab1" aria-expanded="true">
+                            <i class="fas fa-user-shield"></i> Administrador
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="resources_tab-tab2" data-toggle="tab" href="#tab2" aria-controls="tab2">
+                            <i class="fas fa-database"></i> Base Datos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="resources_tab-tab3" data-toggle="tab" href="#tab3" aria-controls="tab3">
+                        <i class="fas fa-key"></i> API Login - Token
+                        </a>
+                    </li>
+                </ul>
 
-                    <div class="box-body">
+                <div class="tab-content">
+                    <div class="tab-pane active" id="tab1" role="tabpanel" aria-labelledby="user_tab-tab1" aria-expanded="false" style="padding-top:20px;">
                         <?=$this->FormItem->buildArray($this->formuser)?>
-
                         <div class="row">
                             <div class="form-group col-xs-12 col-md-6 form-group-sm" style="margin-bottom: 0px;">
                                 <div class="col-sm-3"></div>
@@ -127,54 +151,39 @@ class sys_config_view {
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
-                    <!-- Database -->
-                    <div class="box-header">
-                        <h3 class="box-title">Parámetros base de datos</h3>
-                    </div>
-                    <div class="box-body">
+                    <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="user_tab-tab2" aria-expanded="false" style="padding-top:20px;">
                         <?=$this->FormItem->buildArray($this->formdb)?>
-
                         <div class="row">
-                            <div class="form-group col-xs-12 col-md-6 form-group-sm" style="margin-bottom: 0px;">
-                                <div class="col-sm-3"></div>
-                                <div class="col-sm-9">
-                                    <button id="savedb" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
-                                    <button id="testdb" class="btn btn-default"><span class="fa fa-paper-plane"></span> Probar conexión</button>
-                                </div>
+                            <div class="form-group col-xs-12 col-md-12 form-group-sm" style="margin-bottom: 0px;">
+                                <!-- <div class="col-sm-3"></div> -->
+                                <button id="testdb" class="btn btn-default"><span class="fa fa-paper-plane"></span> Probar conexión</button>
+                                <button id="savedb" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
+                                <button id="initdb" class="btn btn-warning"><span class="fa fa-database"></span> Inicializar</button>
+                                <button id="deletedb" class="btn btn-danger"><span class="fa fa-times"></span> Eliminar</button>
+                                <button id="wipedb" class="btn btn-danger"><span class="fa fa-bomb"></span> Vaciar</button>
                             </div>
                         </div>
-
                     </div>
 
-                    <!-- Database -->
-                    <div class="box-header">
-                        <h3 class="box-title">Parámetros API Login - Token</h3>
-                    </div>
-                    <div class="box-body">
+                    <div class="tab-pane" id="tab3" role="tabpanel" aria-labelledby="user_tab-tab3" aria-expanded="false" style="padding-top:20px;">
                         <?=$this->FormItem->buildArray($this->formlogin)?>
-
                         <div class="row">
                             <div class="form-group col-xs-12 col-md-6 form-group-sm" style="margin-bottom: 0px;">
                                 <div class="col-sm-3"></div>
                                 <div class="col-sm-9">
-                                    <button id="savelogin" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
                                     <button id="testlogin" class="btn btn-default"><span class="fa fa-paper-plane"></span> Probar login</button>
+                                    <button id="savelogin" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
                                 </div>
                             </div>
                         </div>
-
                     </div>
-
-                    <!-- /.box-body -->
                 </div>
-                <!-- /.box -->
-            </div>
-            <!-- /.col -->
-        </div>
-        <!-- /.row -->
+
+            </div>				
+        </div>	
+
         <?php return ob_get_clean();
     }
 }

@@ -2,10 +2,6 @@
 
 class login {
     function __construct() {
-        utils::load([
-            models.get_class(),
-            views.get_class()
-        ]);
         $this->model = new login_model();
         $this->view = new login_view();
     }
@@ -21,35 +17,76 @@ class login {
     }
 
     function login() {
+        
         global $config;
         //Si usuario o password no son enviados, enviar a página de error
-        if (!$_POST["username"] || !$_POST["password"]) {
-            header('Location: /login/error');
-            return;
+        if (!$_POST["username"] || !$_POST["password"] || !$_POST["dispositivo"]) {
+            if ($_POST["dispositivo"] != 1) {
+                echo json_encode([
+                    "type" => "error",
+                    "text" => "Usuario o contraseña inválidos"
+                ]);
+                die();
+            } else {
+                header('Location: /login/error');
+                return;
+            }
         }
         if ($config && $config->superuser && ($_POST["username"] == $config->superuser->username && $_POST["password"] == $config->superuser->password)) {
+            $adminToken = sha1($config->superuser->username.$config->superuser->password);
             //Login admin frame
-            setcookie('token', sha1($config->superuser->username.$config->superuser->password), strtotime( '+30 days' ), "/");
-            header('Location: /');
-            exit;
+            if ($_POST["dispositivo"] != 1) {
+                echo json_encode([
+                    'token' => $adminToken
+                ]);
+                die();
+            } else {
+                setcookie('token', $adminToken, strtotime( '+30 days' ), "/");
+                header('Location: /');
+                exit;
+            }
         } else {
             //Login usuario DB
             $userDbRes = $this->model->get([
                 'username' => $_POST["username"],
-                'password' => $_POST["password"]
+                'password' => sha1($_POST["password"])
             ]);
             if ($userDbRes) {
-                //Login user db
-                setcookie('token', $userDbRes, strtotime( '+30 days' ), "/");
-                header('Location: /');
-                exit;
+                if ($_POST["dispositivo"] != 1) {
+                    echo json_encode([
+                        'token' => $userDbRes,
+                        'data' => $this->model->getTokenData($userDbRes)
+                    ]);
+                    die();
+                } else {
+                    //Login user db
+                    setcookie('token', $userDbRes, strtotime( '+30 days' ), "/");
+                    header('Location: /');
+                    exit;
+                }
             }
         }
-        header('Location: /login/error');
-        exit;
+        if ($_POST["dispositivo"] != 1) {
+            echo json_encode([
+                "type" => "error",
+                "text" => "Usuario o contraseña inválidos"
+            ]);
+            die();
+        } else {
+            header('Location: /login/error');
+            exit;
+        }
     }
 
     function logout() {
+        if ((isset($_POST['dispositivo']) && $_POST['dispositivo'] != 1) && $_COOKIE['token']) {
+            $this->model->eraseToken($_COOKIE['token']);
+            echo json_encode([
+                'type' => 'success',
+                'text' => 'Sesión cerrada'
+            ]);
+            exit;
+        }
         unset($_COOKIE['token']);
         setcookie('token', null, -1, '/');
         header('Location: /');

@@ -1,152 +1,163 @@
 <?php
 
 class utils {
+    function __construct() {
+        global $_DB;
+        global $config;
+        $this->db = $_DB;
+        $this->config = $config;
+    }
 
-    static function pluginLoader($plugins, $filetype = null, $concat = false) {
-        $pluginlist = [
-            'jquery' => [
-                '/bower_components/jquery/dist/jquery.min.js'
-                
-            ],
-            'jquery-cookie' => [
-                '/bower_components/jquery-cookie/jquery.cookie.js'
-            ],
-            'jquery-tree' => [
-                '/bower_components/jquery-tree/tree.jquery.js',
-                '/bower_components/jquery-tree/jqtree.css'
-            ],
-            'adminlte' => [
-                '/bower_components/bootstrap/dist/js/bootstrap.min.js',
-                '/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
-                '/bower_components/fastclick/lib/fastclick.js',
-                '/dist/js/adminlte.min.js',
-                '/bower_components/bootstrap/dist/css/bootstrap.min.css',
-                // '/dist/css/modern-AdminLTE.min.css',
-                '/dist/css/AdminLTE.min.css',
-                
-                '/dist/css/skins/_all-skins.min.css'
-                
-            ],
-            'frame' => [
-                'public/js/frame.js'
-            ],
-            'validator' => [
-                '/bower_components/validator/validator.min.css',
-                '/bower_components/validator/validator.min.js'
-            ],
-            'icons' => [
-                //'/bower_components/font-awesome/css/font-awesome.min.css',
-                '/bower_components/gs-font-awesome/css/all.min.css',
-                
-                '/bower_components/gs-foundation-icon-fonts/foundation-icons.css',
-                '/bower_components/gs-material-design-icons/material-icons.css',
-                '/bower_components/Ionicons/css/ionicons.min.css',
-                
-                '/bower_components/Ionicons/css/ionicons.min.css'
-            ],
-            'sweetalert' => [
-                '/bower_components/sweetalert2/sweetalert2.all.min.js'
-            ],
-            'autonumeric' => [
-                '/bower_components/autoNumeric/autoNumeric.min.js'
-            ],
-            'datatables' => [
-                '/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
-                '/bower_components/datatables.net/js/jquery.dataTables.min.js',
-                '/bower_components/datatables.net/spanish.js',
-                '/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
-                // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.js',
-                // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.css',
-                // 'core/bootstrap_admin/vendor/datatables/css/dataTables.bootstrap.min.css'
-            ],
-            'datatables-select' => [
-                "/plugins/datatables-plugins/dataTables.select.min.js",
-                "/plugins/datatables-plugins/select.dataTables.min.css"
-            ],
-            'datetimepicker' => [
-                '/bower_components/bootstrap-datetimepicker/moment.min.js',
-                '/bower_components/bootstrap-datetimepicker/moment.locale.es.js',
-                '/bower_components/bootstrap/js/transition.js',
-                '/bower_components/bootstrap/js/collapse.js',
-                '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js',
-                '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css'
-            ],
-            'typeahead' => [
-                'core/js/typeahead/bootstrap3-typeahead.js',
+    var $pluginlist = [
+        'jquery' => [
+            '/bower_components/jquery/dist/jquery.min.js'
+            
+        ],
+        'jquery-cookie' => [
+            '/bower_components/jquery-cookie/jquery.cookie.js'
+        ],
+        'jquery-tree' => [
+            '/bower_components/jquery-tree/tree.jquery.js',
+            '/bower_components/jquery-tree/jqtree.css'
+        ],
+        'adminlte' => [
+            '/bower_components/bootstrap/dist/js/bootstrap.min.js',
+            '/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
+            '/bower_components/fastclick/lib/fastclick.js',
+            '/dist/js/adminlte.min.js',
+            '/bower_components/bootstrap/dist/css/bootstrap.min.css',
+            // '/dist/css/modern-AdminLTE.min.css',
+            '/dist/css/AdminLTE.min.css',
+            
+            '/dist/css/skins/_all-skins.min.css'
+            
+        ],
+        'frame' => [
+            'public/js/frame.js'
+        ],
+        'validator' => [
+            '/bower_components/validator/validator.min.css',
+            '/bower_components/validator/validator.min.js'
+        ],
+        'icons' => [
+            //'/bower_components/font-awesome/css/font-awesome.min.css',
+            '/bower_components/gs-font-awesome/css/all.min.css',
+            
+            '/bower_components/gs-foundation-icon-fonts/foundation-icons.css',
+            '/bower_components/gs-material-design-icons/material-icons.css',
+            '/bower_components/Ionicons/css/ionicons.min.css',
+            
+            '/bower_components/Ionicons/css/ionicons.min.css'
+        ],
+        'sweetalert' => [
+            '/bower_components/sweetalert2/sweetalert2.all.min.js'
+        ],
+        'autonumeric' => [
+            '/bower_components/autoNumeric/autoNumeric.min.js'
+        ],
+        'datatables' => [
+            '/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
+            '/bower_components/datatables.net/js/jquery.dataTables.min.js',
+            '/bower_components/datatables.net/spanish.js',
+            '/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
+            // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.js',
+            // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.css',
+            // 'core/bootstrap_admin/vendor/datatables/css/dataTables.bootstrap.min.css'
+        ],
+        'datatables-select' => [
+            "/plugins/datatables-plugins/dataTables.select.min.js",
+            "/plugins/datatables-plugins/select.dataTables.min.css"
+        ],
+        'datetimepicker' => [
+            '/bower_components/bootstrap-datetimepicker/moment.min.js',
+            '/bower_components/bootstrap-datetimepicker/moment.locale.es.js',
+            '/bower_components/bootstrap/js/transition.js',
+            '/bower_components/bootstrap/js/collapse.js',
+            '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js',
+            '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css'
+        ],
+        'typeahead' => [
+            'core/js/typeahead/bootstrap3-typeahead.js',
 
-            ],
-            'jasny' => [
-                'core/js/upload/js/jasny-bootstrap.min.js',
-                'core/js/upload/css/jasny-bootstrap.min.css'
-            ],
-            'autosuggest' => [
-                'core/js/autocomplete_login/bsn.AutoSuggest_2.1.3.js',
-                'core/js/autocomplete_login/autosuggest_inquisitor.css'
-            ],
-            'bootstrap-select' => [
-                '/bower_components/bootstrap-select/js/bootstrap-select.min.js',
-                '/bower_components/bootstrap-select/js/i18n/defaults-es_CL.min.js',
-                '/bower_components/bootstrap-select/css/bootstrap-select.min.css'
-            ],
-            'socket' => [
-                'nodejs/public/js/socket.io.js'
-            ],
-            'icheck' => [
-                './plugins/iCheck/icheck.min.js',
-                './plugins/iCheck/all.css'
-            ]
-        ];
+        ],
+        'jasny' => [
+            'core/js/upload/js/jasny-bootstrap.min.js',
+            'core/js/upload/css/jasny-bootstrap.min.css'
+        ],
+        'autosuggest' => [
+            'core/js/autocomplete_login/bsn.AutoSuggest_2.1.3.js',
+            'core/js/autocomplete_login/autosuggest_inquisitor.css'
+        ],
+        'bootstrap-select' => [
+            '/bower_components/bootstrap-select/js/bootstrap-select.min.js',
+            '/bower_components/bootstrap-select/js/i18n/defaults-es_CL.min.js',
+            '/bower_components/bootstrap-select/css/bootstrap-select.min.css'
+        ],
+        'socket' => [
+            'nodejs/public/js/socket.io.js'
+        ],
+        'icheck' => [
+            './plugins/iCheck/icheck.min.js',
+            './plugins/iCheck/all.css'
+        ]
+    ];
 
+    var $excludeConcat = [
+        'icons'
+    ];
+
+    function pluginLoader($plugins, $filetype = null, $concat = false) {     
         ob_start();
         
-        if ($concat) {
-            //Concat
-            foreach ($plugins as $plugin) {
-                if (self::startsWith(ltrim($plugin), '<script') || self::startsWith(ltrim($plugin), '<style')) {
-                    echo $plugin;
-                } else if (in_array($plugin, array_keys($pluginlist))) {
-                    //El plugin solicitado está en el listado
-                    foreach($pluginlist[$plugin] as $kLink) {
+        foreach ($plugins as $plugin) {
+            if (self::startsWith(ltrim($plugin), '<s') || self::startsWith(ltrim($plugin), '<l')) {
+                echo $plugin;
+            } else if (in_array($plugin, array_keys($this->pluginlist))) {
+                //El plugin solicitado está en el listado
+                if ($concat && !in_array($plugin, $this->excludeConcat)) {
+                    foreach($this->pluginlist[$plugin] as $kLink) {
                         //Cargar los archivos correspondientes al plugin
                         if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                            ?><script><?php echo file_get_contents(root.$kLink); ?></script><?php
+                            ?><script data-name="<?=$kLink?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></script><?php
                         }
                         if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                            ?><style><?php echo file_get_contents(root.$kLink); ?></style><?php
+                            ?><style data-name="<?=$kLink."?".filemtime(root.$kLink)?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></style><?php
                         }
                     }
-                    
-                } else if (strstr($plugin, '/')) {
-                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                        ?><script><?php echo file_get_contents(root.$plugin); ?></script><?php
-                    }
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                        ?><style><?php echo file_get_contents(root.$plugin); ?></style><?php
+                } else {
+                    foreach($this->pluginlist[$plugin] as $kLink) {
+                        $public = public_url;
+                        //Cargar los archivos correspondientes al plugin
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                            ?><script src="<?php echo public_url.$kLink."?".filemtime(root.$kLink); ?>"></script><?php echo PHP_EOL;
+                        }
+                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                            ?><link href="<?php echo public_url.$kLink."?".filemtime(root.$kLink); ?>" rel="stylesheet"><?php echo PHP_EOL;
+                        }
                     }
                 }
-            }
-        } else {
-            //Classic
-            foreach ($plugins as $plugin) {
-                if (self::startsWith(ltrim($plugin), '<script') || self::startsWith(ltrim($plugin), '<style')) {
-                    echo $plugin;
-                } else if (in_array($plugin, array_keys($pluginlist))) {
-                    //El plugin solicitado está en el listado
-                    foreach($pluginlist[$plugin] as $kLink) {
-                        //Cargar los archivos correspondientes al plugin
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                            ?><script src="<?php echo public_url.$kLink; ?>"></script><?php
-                        }
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                            ?><link href="<?php echo public_url.$kLink; ?>" rel="stylesheet"><?php
-                        }
+                
+            } else if (strstr($plugin, '/')) {
+                if ($this->startsWith($plugin, 'http')) {
+                    //El plugin solicitado está en otro servidor
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                        ?><script src="<?php echo $plugin; ?>"></script><?php
                     }
-                    
-                } else if (strstr($plugin, '/')) {
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                        ?><link href="<?php echo $plugin; ?>" rel="stylesheet"><?php
+                    }
+                } elseif ($concat && !in_array($plugin, $this->excludeConcat)) {
                     //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
                     if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                        ?><script src="<?php echo public_url.$plugin; ?>"></script><?php
+                        ?><script data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></script><?php
+                    }
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                        ?><style data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></style><?php
+                    }
+                } else {
+                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
+                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                        ?><script src="<?php echo public_url.$plugin."?".filemtime(root.$plugin); ?>"></script><?php
                     }
                     if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
                         ?><link href="<?php echo public_url.$plugin; ?>" rel="stylesheet"><?php
@@ -156,6 +167,71 @@ class utils {
         }
         
         return ob_get_clean();
+    }
+
+    static function autoLoad() {
+        //Clases
+        // self::load_files(classes);
+        // $classes = scandir(classes);
+        // $classes = array_values(array_filter($classes, function($file) {
+        //     return self::endsWith($file, '.php') && $file != 'lightframe.php';
+        // }));
+        // $classes = array_map(function($file) {
+        //     return classes.$file;
+        // }, $classes);
+        // self::load($classes);
+
+        self::load([
+            classes.'formitembuilder.php'
+        ]);
+
+        //Controladores
+        self::load_files(controllers);
+        // $controllers = scandir(controllers);
+        // $controllers = array_values(array_filter($controllers, function($file) {
+        //     return self::endsWith($file, '.php');
+        // }));
+        // $controllers = array_map(function($file) {
+        //     return controllers.$file;
+        // }, $controllers);
+        // self::load($controllers);
+
+        //Modelos
+        self::load_files(models);
+        // $models = scandir(models);
+        // $models = array_values(array_filter($models, function($file) {
+        //     return self::endsWith($file, '.model.php');
+        // }));
+        // $models = array_map(function($file) {
+        //     return models.$file;
+        // }, $models);
+        // self::load($models);
+
+        //Vistas
+        self::load_files(views);
+        // $views = scandir(views);
+
+        // echo json_encode($views);
+        // exit;
+
+        // $views = array_values(array_filter($views, function($file) {
+        //     return self::endsWith($file, '.view.php');
+        // }));
+        // $views = array_map(function($file) {
+        //     return views.$file;
+        // }, $views);
+        // self::load($views);
+    }
+
+    static function load_files($target) {
+        if(is_dir($target)) {
+            $files = glob( $target . '*', GLOB_MARK ); //GLOB_MARK adds a slash to directories returned
+            foreach( $files as $file ) {
+                self::load_files( $file );
+            }
+        } elseif(is_file($target)) {
+            self::load($target);
+        }
     }
 
     static function load($path) {
@@ -231,12 +307,38 @@ class utils {
         return (substr($haystack, -$length) === $needle);
     }
 
+    static function emit($name, $values, $emitall = false) {
+        global $config;
+        self::post($config->socket->local."/emit", [
+            "name" => $name,
+            "values" => json_encode($values),
+            "token" => (isset($_COOKIE["token"])) ? $_COOKIE["token"] : 0,
+            "system" =>  $config->socket->system,
+            "emitall" => $emitall
+        ]);
+        // self::curl_post_async($config->socket->local."/emit", [
+        //     "name" => $name,
+        //     "values" => json_encode($values)
+        // ]);
+    }
+
+    static function emitUser() {
+        global $config;
+        return self::post($config->socket->local."/send_user_connect", [
+            "system" =>  $config->socket->system
+        ]);
+    }
+
     static function post($url = '', $data = [], $json = false) {
         $options = [
             'http' => [
                 'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
                 'method'  => 'POST',
                 'content' => http_build_query($data)
+            ],
+            'ssl' => [
+                'verify_peer'      => false,
+                'verify_peer_name' => false
             ]
         ];
         $context  = stream_context_create($options);
@@ -254,11 +356,40 @@ class utils {
         return $result;
     }
 
-    function get($url, $data = [], $json = false) {
+    static function curl_post_async($url, $params)
+    {
+        foreach ($params as $key => &$val) {
+        if (is_array($val)) $val = implode(',', $val);
+            $post_params[] = $key.'='.urlencode($val);
+        }
+        $post_string = implode('&', $post_params);
+
+        $parts=parse_url($url);
+
+        $fp = fsockopen($parts['host'],
+            isset($parts['port'])?$parts['port']:80,
+            $errno, $errstr, 30);
+
+        // pete_assert(($fp!=0), "Couldn't open a socket to ".$url." (".$errstr.")");
+
+        $out = "POST ".$parts['path']." HTTP/1.1\r\n";
+        $out.= "Host: ".$parts['host']."\r\n";
+        $out.= "Content-Type: application/x-www-form-urlencoded\r\n";
+        $out.= "Content-Length: ".strlen($post_string)."\r\n";
+        $out.= "Connection: Close\r\n\r\n";
+        if (isset($post_string)) $out.= $post_string;
+
+        fwrite($fp, $out);
+        fclose($fp);
+    }
+
+    static function get($url, $data = [], $json = false) {
         if (!$data) {
             $data = [];
         }
         //Query URL
+        $url = $url . "?" . http_build_query($data);
+
         $result = file_get_contents($url);
         return $json?json_decode($result, true):$result;
     }
@@ -302,10 +433,17 @@ class utils {
     }
 
     function arrayToTable($params) {
+        global $_DB;
         global $config;
-        $_DB = new database($config->database);
 		extract($params);
-		//$table, $key, $filter, $data, $insert = true, $delete = true, $duplicate = true
+        //$table, $key, $filter, $data, $insert = true, $delete = true, $duplicate = true
+        if (!isset($schema)) {
+            if ($config->database->type == "pgsql") {
+                $schema = 'public';
+            } else if ($config->database->type == "mssql") {
+                $schema = 'dbo';
+            }
+		}
 		if (!isset($table)) {
 			return false;
 		}
@@ -317,6 +455,9 @@ class utils {
         }
         if (!isset($duplicate)) {
 			$duplicate = true;
+        }
+        if (!isset($preserve)) {
+			$preserve = true;
 		}
 
 		
@@ -338,23 +479,54 @@ class utils {
                 //Tipos de datos
                 if (in_array('int', $columnDefs[$ckey])) {
                     if (in_array('autonum', $columnDefs[$ckey])) {
-                        $qryCreate .= "{$ckey} SERIAL";
+                        if ($config->database->type == "pgsql") {
+                            $qryCreate .= "{$ckey} SERIAL";
+                        } else if ($config->database->type == "mssql") {
+                            $qryCreate .= "{$ckey} INT IDENTITY(1,1)";
+                        }
                     } else {
                         $qryCreate .= "{$ckey} INT";
                     }
-                    $columns[$ckey] = 'int4';
+                    if ($config->database->type == "pgsql") {
+                        $columns[$ckey] = 'int4';
+                    } else if ($config->database->type == "mssql") {
+                        $columns[$ckey] = 'int';
+                    }
                 } else if (in_array('varchar', $columnDefs[$ckey])) {
                     $qryCreate .= "{$ckey} VARCHAR(255)";
                     $columns[$ckey] = 'varchar';
+                } else if (in_array('varcharmax', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} NVARCHAR(MAX)";
+                    $columns[$ckey] = 'nvarchar';
                 } else if (in_array('float', $columnDefs[$ckey])) {
                     $qryCreate .= "{$ckey} FLOAT";
-                    $columns[$ckey] = 'float4';
+                    if ($config->database->type == "pgsql") {
+                        $columns[$ckey] = 'float4';
+                    } else if ($config->database->type == "mssql") {
+                        $columns[$ckey] = 'float';
+                    }
                 } else if (in_array('timestamp', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} TIMESTAMP";
-                    $columns[$ckey] = 'timestamp';
+                    if ($config->database->type == "pgsql") {
+                        $qryCreate .= "{$ckey} TIMESTAMP";
+                        $columns[$ckey] = 'timestamp';
+                    } else if ($config->database->type == "mssql") {
+                        $qryCreate .= "{$ckey} DATETIME";
+                        $columns[$ckey] = 'datetime';
+                    }
+                } else if (in_array('date', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} DATE";
+                    $columns[$ckey] = 'date';
+                } else if (in_array('time', $columnDefs[$ckey])) {
+                    $qryCreate .= "{$ckey} TIME";
+                    $columns[$ckey] = 'time';
                 } else if (in_array('json', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} JSON";
-                    $columns[$ckey] = 'json';
+                    if ($config->database->type == "pgsql") {
+                        $qryCreate .= "{$ckey} JSON";
+                        $columns[$ckey] = 'json';
+                    } else if ($config->database->type == "mssql") {
+                        $qryCreate .= "{$ckey} NVARCHAR(MAX)";
+                        $columns[$ckey] = 'nvarchar';
+                    }
                 }
                 //Características
                 if (in_array('primary', $columnDefs[$ckey])) {
@@ -378,7 +550,11 @@ class utils {
             foreach($keys as $ckey) {
                 if (is_int($firstElement[$ckey])) {
                     $qryCreate .= "{$ckey} int";
-                    $columns[$ckey] = 'int4';
+                    if ($config->database->type == "pgsql") {
+                        $columns[$ckey] = 'int4';
+                    } else if ($config->database->type == "mssql") {
+                        $columns[$ckey] = 'int';
+                    }
                 } else {
                     $qryCreate .= "{$ckey} varchar(255)";
                     $columns[$ckey] = 'varchar';
@@ -392,23 +568,69 @@ class utils {
 
 		$createTable = true;
 		//Check if temp table exists
-		$query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '{$table}'";
-		$res = $_DB->query($query);
-		$reg = $_DB->to_object($res)->count;
+		$query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+        $reg = $_DB->queryToSingleVal($query);
 
 		if ($reg) {
-			//Extract columns from DB
-			$query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{$table}'";
-			$res = $_DB->query($query);
+            //Extract columns from DB
+            if ($config->database->type == "pgsql") {
+                $query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+            } else if ($config->database->type == "mssql") {
+                $query = "SELECT column_name, data_type as udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+            }
+			
+			$res = $_DB->queryToArray($query);
 			$dbColumns = [];
-			while ($column = $_DB->to_object($res)) {
-				$dbColumns[$column->column_name] = $column->udt_name;
+			foreach ($res as $column) {
+                $column = (object)$column;
+                if ($column && property_exists($column, 'column_name')) {
+                    $dbColumns[$column->column_name] = $column->udt_name;
+                } else {
+                    ob_start();
+                    echo $query;
+                    var_dump($column);
+                    error_log(ob_get_clean());
+                    die;
+                }
 			}
 			//Compare columns
 			$comparison = array_diff_assoc($columns, $dbColumns);
 			if (!empty($comparison)) {
-                $_DB->query("DROP TABLE {$table};");
-                error_log("Dropping table {$table}, comparison: ".json_encode($comparison), 0);
+                if ($preserve) {
+                    //Traer toda la data desde la tabla que se va a droppear
+                    $tmpData = $_DB->queryToArray("SELECT * FROM {$schema}.{$table}");
+                    //Guardar data en CSV
+                    $this->saveTempCSV($tmpData, $table, $schema);
+                    if ($tmpData) {
+                        $columnKeys = array_keys($columnDefs);
+                        //Old data in new columns / delete old columns data
+                        $tmpData = array_map(function($row) use ($columnKeys) {
+                            $newrow = [];
+                            foreach (array_keys($row) as $ckey) {
+                                if (in_array($ckey, $columnKeys)) {
+                                    $newrow[$ckey] = $row[$ckey];
+                                }
+                            }
+                            return $newrow;
+                        }, $tmpData);
+                        //Venía data por defecto
+                        if (isset($data)) {
+                            if ($key) {
+                                $oldKeyVals = array_column($tmpData, $key);
+                                foreach ($data as $row) {
+                                    if (!in_array($row[$key], $oldKeyVals)) {
+                                        $tmpData[] = $row;
+                                    }
+                                }
+                            }
+                        }
+                        $data = $tmpData;
+                    }
+                }
+                $_DB->query("DROP TABLE {$schema}.{$table};");
+                error_log("Dropping table {$schema}.{$table}, comparison: ".json_encode($comparison), 0);
+                error_log("DB Columns: ".json_encode($dbColumns));
+                error_log("New Columns: ".json_encode($columns));
 			} else {
 				$createTable = false;
 			}
@@ -418,18 +640,18 @@ class utils {
 		//Create table
 		if ($createTable) {
 			//Build "create table"...
-            $_DB->query("CREATE TABLE {$table} {$qryCreate}");
-            error_log("Creating table {$table}", 0);
-            error_log("CREATE TABLE {$table} {$qryCreate}");
-		} 
+            $_DB->query("CREATE TABLE {$schema}.{$table} {$qryCreate}");
+            error_log("Creating table {$schema}.{$table}", 0);
+            error_log("CREATE TABLE {$schema}.{$table} {$qryCreate}");
+		}
 
 		if ($delete) {
             //Erase possible data with filter
             if ($filter) {
-                $_DB->query("DELETE FROM {$table} WHERE ".$this->arrayToQuery('and', $filter));
+                $_DB->query("DELETE FROM {$schema}.{$table} WHERE ".$this->arrayToQuery('and', $filter));
                 error_log("Deleting filtered data", 0);
             } else {
-                $_DB->query("DELETE FROM {$table}");
+                $_DB->query("DELETE FROM {$schema}.{$table}");
                 error_log("Deleting data", 0);
             }
 		}
@@ -438,18 +660,42 @@ class utils {
             //Check if data is duplicated
             if (!$duplicate && isset($key)) {
                 $keystoinsert = array_column($data, $key);
-                $_DB->query("DELETE FROM {$table} WHERE {$key} IN ".$this->arrayToQuery('in', $keystoinsert));
+                $_DB->query("DELETE FROM {$schema}.{$table} WHERE {$key} IN ".$this->arrayToQuery('in', $keystoinsert));
                 error_log("Deleting duplicated data: ".$this->arrayToQuery('in', $keystoinsert), 0);
             }
 
             //Fill table with data
-            if (isset($data)) {
-                $_DB->query("INSERT INTO {$table} ".$this->multipleArrayToInsert($data));
+            if (isset($data) && $data) {
+                if ($config->database->type == "mssql") {
+                    $_DB->query("SET IDENTITY_INSERT {$schema}.{$table} ON");
+                }
+                $_DB->query("INSERT INTO {$schema}.{$table} ".$this->multipleArrayToInsert($data));
+                if ($config->database->type == "mssql") {
+                    $_DB->query("SET IDENTITY_INSERT {$schema}.{$table} OFF");
+                }
                 error_log("Inserting data: ".$this->multipleArrayToInsert($data), 0);
             }
 		}
 		
-	}
+    }
+    
+    function saveTempCSV($array, $table, $schema) {
+        $dir = base."/tempcsv/{$schema}/";
+        //Crear carpeta
+        if (is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        //Abrir archivo
+        $fp = fopen("{$dir}{$table}-".date("Ymd").".csv", 'w');
+        //Escribir nombres de columnas
+        fputcsv($fp, array_keys($array[0]));
+        //Escribir data
+        foreach ($array as $row) {
+            fputcsv($fp, array_values($row));
+        }
+        //Cerrar
+        fclose($fp);
+    }
 
     static function getAjaxTemp($query) {
         global $_DB;
@@ -462,6 +708,53 @@ class utils {
         } else {
             return false;
         }
+    }
+
+    function executeSP($schema, $target = null) {
+        if ($target == null) {
+            if ($schema == 'dbo') {
+                //dbo
+                $this->executeSP($schema, base."storedprocedures/dbo/");
+            } else {
+                //cli
+                $this->executeSP($schema, base."storedprocedures/cli/");
+            }
+        } else {        
+            if(file_exists($target)){   
+                if(is_dir($target)) {
+                    $files = glob( $target . '*', GLOB_MARK ); //GLOB_MARK adds a slash to directories returned
+                    foreach( $files as $file ) {
+                        $this->executeSP($schema, $file);
+                    }
+                } else if(is_file($target) && pathinfo($target)['extension'] == 'sql') {
+                    //self::load($target); 
+                    //ejecutar consulta
+
+                    //leer archivo $target
+                    $sql = file_get_contents($target);
+
+                    // $fp = file($target, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                    // $sql = '';
+                    // foreach ($fp as $line) {
+                    //     if ($line != '' && strpos($line, '--') === false) {
+                    //         $sql .= $line;
+                    //     }
+                    // }
+                    
+                    $createpos = strpos($sql,'CREATE');
+
+                    //cli
+                    $sql = substr($sql,$createpos);
+                    if ($schema != 'dbo') {
+
+                        $sql = str_replace('__client', $schema, $sql);
+                        
+                    }
+                    $this->db->query($sql);
+                }
+            }
+        }
+        
     }
 
     static function safeInsert($table, $data) {
@@ -510,13 +803,14 @@ class utils {
     }
 
     function valuesArrayToSQLCompatibleString($array, $returnArray = false) {
+        global $config;
         $keys = array_keys($array);
         $lastKey = end($keys);
         $finalString = '';
         $finalArray = [];
         foreach ($keys as $key) {
             //Vacío (null)
-            if ($array[$key] == '' || $array[$key] === null) {
+            if ($array[$key] === '' || $array[$key] === null) {
                 $finalString .= 'null';
                 $finalArray[] = 'null';
             }
@@ -537,10 +831,22 @@ class utils {
             }
             //Es string (por descarte, con comillas)
             else {
-                if ($array[$key] == 'now()' || $array[$key] == 'DEFAULT' || utils::startsWith($array[$key], 'excluded.')) {
+                if ($array[$key] == 'now()' || $array[$key] == 'getdate()' || $array[$key] == 'DEFAULT' || utils::startsWith($array[$key], 'excluded.')) {
+                    //Strings especiales / funciones de BD
+                    if ($array[$key] == 'now()' && $config->database->type == 'mssql') {
+                        $array[$key] = 'getdate()';
+                    }
+                    if ($array[$key] == 'getdate()' && $config->database->type == 'pgsql') {
+                        $array[$key] = 'now()';
+                    }
                     $finalString .= "$array[$key]";
                     $finalArray[] = "$array[$key]";
                 } else {
+                    //String común
+                    if (strpos($array[$key], "'") !== false) {
+                        //String contiene comillas simples/duplicar
+                        $array[$key] = str_replace("'", "''", $array[$key]);
+                    }
                     $finalString .= "'$array[$key]'";
                     $finalArray[] = "'$array[$key]'";
                 }
@@ -559,49 +865,96 @@ class utils {
     }
     
     //Convertir Array a String Query
-    function arrayToQuery($action, $array, $test = false) {
+    /**
+     * $action: puede ser un string o un arreglo. Si es un arreglo, todos los parámetros deberían venir dentro del arreglo, incluyendo "action".
+     * La acción puede ser "insert", "update", "in", "and".
+     * 
+     * $array: Es el arreglo de datos que será convertido a la acción determinada. De no ser enviado como segundo parámetro, debe ir dentro del arreglo.
+     * $return: Las columnas que devolverá la consulta generada de las filas afectadas.
+     * $where: El string correspondiente a la cláusula where.
+     */
+    function arrayToQuery($action, $array = null) {
+        global $config;
+        if (is_array($action)) {
+            extract($action);
+            if (!isset($where)) {
+                $where = null;
+            }
+        }
         $jsonChars = ['"', '[', ']'];
         $sqlChars  = ["'", '(', ')'];
         $sQuery = "";
         if (count($array)) {
+            
             $keys = str_replace(["'", '(', ')'], "", str_replace($jsonChars, $sqlChars, json_encode(array_keys($array))));
+            
             //$values = str_replace(['(', ')'], "", str_replace($jsonChars, $sqlChars, json_encode(array_values($array))));
+            if (in_array($action, ['insert', 'update'])) {
+                if (isset($return) && $return) {
+                    $return = $this->returnToQuery($return);
+                } else {
+                    $return = "";
+                }
+            }
             if ($action == "update" || $action == "and") {
                 $keys = explode(',', $keys);
                 $values = $this->valuesArrayToSQLCompatibleString(array_values($array), true);
                 $fValues = array_combine($keys, $values);
-                if ($test) {
-                    echo json_encode($keys, JSON_PRETTY_PRINT);
-                    echo "\n";
-                    echo json_encode($values, JSON_PRETTY_PRINT);
-                    exit;
-                }
+                
                 if (count($fValues)) {
                     $i = 1;
+                    
                     foreach ($fValues as $key => $val) {
                         //BIT datatype syntax correction
                         if (strpos($val, "'b'") === 0) {
                             $val = substr($val, 1, -1);
                         }
                         $sQuery .= $key . " = " . $val;
+                        //Glue
                         if (count($fValues) > $i) {
                             if ($action == "update") {
-                                $sQuery .= ", ".PHP_EOL;
+                                $sQuery .= ", ";
                             } else if ($action == "and") {
                                 $sQuery .= " AND ";
                             }
-                            
                         }
                         $i++;
                     }
+
+                    if ($config->database->type == "mssql") {
+                        if (isset($return) && isset($where)) {
+                            $sQuery = "{$sQuery} {$return} {$where}";
+                        } else if (isset($return)) {
+                            $sQuery = "{$sQuery} {$return}";
+                        } else if (isset($where)) {
+                            $sQuery = "{$sQuery} {$where}";
+                        }
+                    } else if ($config->database->type == "pgsql") {
+                        if (isset($return) && isset($where)) {
+                            $sQuery = "{$sQuery} {$where} {$return}";
+                        } else if (isset($return)) {
+                            $sQuery = "{$sQuery} {$return}";
+                        } else if (isset($where)) {
+                            $sQuery = "{$sQuery} {$where}";
+                        }
+                    }
+                    
                 }
             } elseif ($action == "insert") {
                 $values = $this->valuesArrayToSQLCompatibleString(array_values($array));
                 $sQuery .= "(";
                 $sQuery .= $keys;
-                $sQuery .= ") VALUES (";
+                if ($config->database->type == "mssql" && $return) {
+                    $sQuery .= ") {$return} VALUES (";
+                } else {
+                    $sQuery .= ") VALUES (";
+                }
                 $sQuery .= $values;
-                $sQuery .= ")";
+                if ($config->database->type == "pgsql" && $return) {
+                    $sQuery .= ") {$return}";
+                } else {
+                    $sQuery .= ")";
+                }
             } elseif ($action == "in") {
                 $values = $this->valuesArrayToSQLCompatibleString(array_values($array));
                 $sQuery = "(" . $values . ")";
@@ -610,6 +963,30 @@ class utils {
         } else {
             return false;
         }
+    }
+
+    function returnToQuery($return, $action = "inserted") {
+        global $config;
+        if (is_array($return)) {
+            $return = array_map(function($col) use ($config,$action) {
+                if ($config->database->type == "mssql") {
+                    return "{$action}.{$col}";
+                } else {
+                    return $col;
+                }
+            }, $return);
+            $return = implode(', ', $return);
+        } else {
+            if ($config->database->type == "mssql") {
+                $return = "{$action}.{$return}";
+            }
+        }
+        if ($config->database->type == "mssql") {
+            $return = "OUTPUT {$return}";
+        } else if ($config->database->type == "pgsql") {
+            $return = "RETURNING {$return}";
+        }
+        return $return;
     }
     
     function multipleArrayToWhere($array) {
@@ -625,12 +1002,13 @@ class utils {
         return $query;
     }
     
-    function multipleArrayToInsert($array) {
+    function multipleArrayToInsert($array, $return = []) {
+        global $config;
         $jsonChars = ['"', '[', ']'];
         $sqlChars  = ["'", '(', ')'];
         $sQuery = "";
         //Si el primer elemento del array tiene m�ltiples elementos -- array multidimensional
-        if (count($array[0]) > 1) {
+        if (isset($array[0]) && count($array[0]) >= 1) {
             //Extraer cabeceras desde el primer elemento
             $keys = str_replace(["'", '(', ')'], "", str_replace($jsonChars, $sqlChars, json_encode(array_keys($array[0]))));
     
@@ -639,18 +1017,318 @@ class utils {
             }, $array);
     
             //$values = str_replace(['((', '))'], ['(', ')'], str_replace($jsonChars, $sqlChars, json_encode(array_values($array))));
+
+            if (isset($return) && $return) {
+                $return = $this->returnToQuery($return);
+            } else {
+                $return = "";
+            }
     
             $sQuery .= "(";
             $sQuery .= $keys;
-            $sQuery .= ") VALUES ";
+            if ($config->database->type == "mssql" && $return) {
+                $sQuery .= ") {$return} VALUES ";
+            } else {
+                $sQuery .= ") VALUES ";
+            }
             
             $last_key = array_keys($array);
             $last_key = end($last_key);
             foreach (array_keys($array) as $key) {
                 $sQuery .= "(".$this->valuesArrayToSQLCompatibleString(array_values($array[$key])).")".($key!=$last_key?", ":"");
             }
+
+            if ($config->database->type == "pgsql" && $return) {
+                $sQuery .= " {$return}";
+            }
         }
         return $sQuery;
+    }
+
+    function is_true($val, $return_null=false){
+        $boolval = ( is_string($val) ? filter_var($val, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : (bool) $val );
+        return ( $boolval===null && !$return_null ? false : $boolval );
+    }
+
+    // fileUploadMaxSize / uploadFile por revisar
+    function fileUploadMaxSize($returnByte=0){
+		$upload_max_filesize = ini_get('upload_max_filesize');
+        $upload_post_max_size = ini_get('post_max_size');
+        // echo $upload_max_filesize.'--'.$upload_post_max_size;
+		if(($upload_max_filesize * 1)<($upload_post_max_size * 1)){
+			$upload_max_filesize_bytes = $upload_max_filesize;
+		}else{
+			$upload_max_filesize_bytes = $upload_post_max_size;
+		}
+			if($returnByte==1){
+				$upload_max_filesize_bytes = trim($upload_max_filesize_bytes);
+				$ultimo = strtolower($upload_max_filesize_bytes[strlen($upload_max_filesize_bytes)-1]);
+				switch($ultimo) {
+					case 'g':
+						$upload_max_filesize_bytes *= 1024;
+					case 'm':
+						$upload_max_filesize_bytes *= 1024;
+					case 'k':
+						$upload_max_filesize_bytes *= 1024;
+				}
+			}
+		return $upload_max_filesize_bytes;
+	}
+
+	function uploadFile($fileUpload,$fileTemp){
+        $tamanoArchivo = $_FILES[$fileTemp]['size'];
+        // if ($tamanoArchivo > $this->fileUploadMaxSize(1)){
+        //     return false;
+        // }else{
+            if(move_uploaded_file($_FILES[$fileTemp]['tmp_name'],$fileUpload)){
+               return true;
+            }else{
+               return false;
+            }
+        // }
+    }
+
+    function imageToBase64($imgfile){
+
+        $ext = pathinfo($imgfile);
+
+        $img = file_get_contents(root.$imgfile);
+
+        $imgb64 = 'data:image/'.$ext["extension"].';base64, '.base64_encode($img); 
+
+        return $imgb64;
+    }
+
+    function limpiarCaracteresEspeciales($s) {
+        $s = str_replace(['á','à','â','ãª'],"a",$s);
+        $s = str_replace(['Á','À','Â','Ã'],"A",$s);
+        $s = str_replace(['é','è','ê'],"e",$s);
+        $s = str_replace(['É','È','Ê'],"E",$s);
+        $s = str_replace(['í','ì','î'],"i",$s);
+        $s = str_replace(['Í','Ì','Î'],"I",$s);
+        $s = str_replace(['ó','ò','ô','õº'],"o",$s);
+        $s = str_replace(['Ó','Ò','Ô','Õ'],"O",$s);
+        $s = str_replace(['ú','ù','û'],"u",$s);
+        $s = str_replace(['Ú','Ù','Û'],"U",$s);
+        $s = str_replace(" ","",$s);
+        $s = str_replace("ñ","n",$s);
+        $s = str_replace("Ñ","N",$s);
+        //para ampliar los caracteres a reemplazar agregar lineas de este tipo:
+        //$s = str_replace("caracter-que-queremos-cambiar","caracter-por-el-cual-lo-vamos-a-cambiar",$s);
+        return $s;
+    }
+
+    function cleanRut($rut){
+        // '/^0+|[^0-9kK]+/g'
+        $rut = (gettype($rut) === 'string') ? preg_replace("/^0+|[^0-9kK]+/",'',$rut) : '';
+        return  $rut;
+    }
+
+    function validateRut($rut){        
+        
+        if(gettype($rut) !== 'string'){
+            return false;
+        }
+
+        if(!preg_match("/^0*(\d{1,3}(\.?\d{3})*)-?([\dkK])$/",$rut)){
+            return false;
+        }
+        
+
+        $rut = $this->cleanRut($rut);
+
+        $t = (int)substr($rut, 0, -1);
+        $m = 0;
+        $s = 1;
+
+        while ($t > 0) {
+            $s = ($s + ($t % 10) * (9 - $m++ % 6)) % 11;
+            $t = floor($t/10);
+        }
+
+        $v = ($s > 0) ? ''.($s - 1) : 'K';
+
+	    return strtolower($v) === strtolower(substr($rut, -1));
+    }
+
+    function formatRut($rut){
+        $rut = $this->cleanRut($rut);
+
+        $length = strlen($rut);
+
+        $result = substr($rut,$length - 4, 3)."-".$rut[$length - 1];
+
+        for($i = 4; $i < $length; $i+= 3){
+            $result = substr($rut, -3 - $i, -$i).".".$result;
+        }
+
+        return $result;
+    }
+
+    function createDirectory($pathname){
+        if(!file_exists($pathname)){
+            return mkdir($pathname, 0777);
+        } else {
+            return true;
+        }
+    }
+
+    //funcion para crear miniaturas de imagenes
+    function resizeImage($name_file, $src_file, $dest_file, $new_size = 200, $resize_aspect = "wd", $quality = "80") {
+
+        global $config;
+
+        $this->createDirectory(root.$config->global->s3path.$dest_file);
+
+        $dest_file = root.$dest_file.$name_file;
+
+        $imginfo = getimagesize($src_file);
+
+        if ($imginfo == null) {
+
+            return false;
+        }
+
+        // GD2 can only handle JPG, PNG & GIF images
+        if (!$imginfo[2] > 0 && $imginfo[2] <= 3) {
+            return false;
+        }
+
+        // height/width
+        $srcWidth = $imginfo[0];
+        $srcHeight = $imginfo[1];
+        
+        if($srcWidth > 200){
+            if ($resize_aspect == 'ht') {
+                $ratio = $srcHeight / $new_size;
+            } elseif ($resize_aspect == 'wd') {
+                $ratio = $srcWidth / $new_size;
+            } elseif ($resize_aspect == 'sq') {
+                $ratio = min($srcWidth, $srcHeight) / $new_size;
+            } else {
+                $ratio = max($srcWidth, $srcHeight) / $new_size;
+            }
+        } else {
+            $ratio = 1.0;
+        }
+        
+
+        /**
+         * Initialize variables
+         */
+        $clipX = 0;
+        $clipY = 0;
+
+        $ratio = max($ratio, 1.0);
+        if ($resize_aspect == 'sq') {
+            $destWidth = (int) (min($srcWidth, $srcHeight) / $ratio);
+            $destHeight = (int) (min($srcWidth, $srcHeight) / $ratio);
+            if ($srcHeight > $srcWidth) {
+                $clipX = 0;
+                $clipY = ((int) ($srcHeight - $srcWidth) / 2);
+                $srcHeight = $srcWidth;
+            } elseif ($srcWidth > $srcHeight) {
+                $clipX = ((int) ($srcWidth - $srcHeight) / 2);
+                $clipY = 0;
+                $srcWidth = $srcHeight;
+            }
+        } else {
+            $destWidth = (int) ($srcWidth / $ratio);
+            $destHeight = (int) ($srcHeight / $ratio);
+        }
+
+        if (!function_exists('imagecreatefromjpeg')) {
+            echo 'PHP running on your server does not support the GD image library, check with your webhost if ImageMagick is installed';
+            exit;
+        }
+        if (!function_exists('imagecreatetruecolor')) {
+            echo 'PHP running on your server does not support GD version 2.x, please switch to GD version 1.x on the admin page';
+            exit;
+        }
+
+        if ($imginfo[2] == 1)
+            $src_img = imagecreatefromgif($src_file);
+        elseif ($imginfo[2] == 2)
+            $src_img = imagecreatefromjpeg($src_file);
+        else
+            $src_img = imagecreatefrompng($src_file);
+        if (!$src_img) {
+            return false;
+        }
+        if ($imginfo[2] == 1) {
+            $dst_img = imagecreate($destWidth, $destHeight);
+        } else {
+            $dst_img = imagecreatetruecolor($destWidth, $destHeight);
+        }
+
+        imagecopyresampled($dst_img, $src_img, 0, 0, $clipX, $clipY, (int) $destWidth, (int) $destHeight, $srcWidth, $srcHeight);
+        imagejpeg($dst_img, $dest_file, $quality);
+        imagedestroy($src_img);
+        imagedestroy($dst_img);
+
+        // We check that the image is valid
+        $imginfo = getimagesize($dest_file);
+        if ($imginfo == null) {
+            @unlink($dest_file);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function sendEmail($data){
+        $mail = new PHPMailer(TRUE);
+
+        $mail->IsSMTP();
+        $mail->CharSet = 'UTF-8';
+        $mail->SMTPAuth = true;
+        $mail->Host = "email-smtp.us-east-1.amazonaws.com";
+        $mail->Username = "AKIAQL7KNHBJEJFQAO3A";
+        $mail->Password = "BPM957r2l0Va95w51En6KCuv0ZJQuWGHQPERo/MqVg/y";
+        $mail->Port = 587;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+
+
+        $mail->setFrom("noreply@buildingclerk.com", 'Building Clerk');
+
+        //Destinatarios : puede ser uno o un arreglo
+        if(is_array($data["email"])){
+            foreach ($data["email"] as $email){
+                $mail->AddAddress($email);
+            }            
+        } else {
+            $mail->AddAddress($data["email"]);
+        }
+             
+
+        $mail->isHTML(true);
+        $mail->Subject = $data["asunto"];
+        $mail->Body = $data["bodyEmail"];
+
+        // attachment = variable que permite adjuntar archivo en un correo
+        /* attachment debe ser un ARRAY con los parametros: 
+            content = contenido del archivo, sin base64
+            filename = nombre que llevara el archivo adjunto
+            ext = extension de archivo
+        */
+        if(isset($data["attachment"]) && is_array($data["attachment"])){
+            if(isset($data["attachment"][0])){
+                foreach($data["attachment"] as $file){
+                    $mail->AddStringAttachment($file["content"], $file["filename"].'.'.$file["ext"]);
+                }
+            } else {
+                $file = $data["attachment"];
+                $mail->AddStringAttachment($file["content"], $file["filename"].'.'.$file["ext"]);
+            }
+        }
+
+
+        if (!$mail->send()) {
+            return 'Mailer Error: '. $mail->ErrorInfo;
+        } else {
+           return 'Message sent!';
+        }
+
     }
 
 }
