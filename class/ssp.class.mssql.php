@@ -152,7 +152,7 @@ class SSP {
 
 		if ( isset($request['search']) && $request['search']['value'] != '' ) {
 			$str = $request['search']['value'];
-			$str = pg_escape_string($str);
+			// $str = pg_escape_string($str);
 
 			for ( $i=0, $ien=count($request['columns']) ; $i<$ien ; $i++ ) {
 				$requestColumn = $request['columns'][$i];
@@ -294,6 +294,7 @@ class SSP {
     	// $result = pg_query( $db, $select ) or SSP::fatal("Error al ejecutar la consulta.\n". pg_last_error()."\n $select");
 		// $data = pg_fetch_all($result);
 		$time_start = microtime(true);
+		error_log($select);
 		$data = $_DB->queryToArray($select);
 		
 		

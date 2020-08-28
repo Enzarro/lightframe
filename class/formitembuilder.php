@@ -25,8 +25,8 @@ class FormItem {
 	private $addons;
 	private $selectOptionsTemp;
 	
-	private $validTypes = ["text", "select", "search", "file", "textarea", "static", "checkbox", "password", "table"];
-	private $validParams = ['type', 'label', 'name', 'value', 'prop', 'horizontal', 'size', 'stack', 'addons', 'wrap', 'class'];
+	private $validTypes = ["text", "select", "search", "file", "textarea", "static", "checkbox", "password", "table", "image", "upfile"];
+	private $validParams = ['type', 'label', 'name', 'value', 'prop', 'horizontal', 'size', 'stack', 'addons', 'wrap', 'class', 'icon'];
 	private $excludeData = ['title', 'style', 'class', 'disabled'];
 	
 	public function __construct($data = null, $common = null) {
@@ -87,9 +87,20 @@ class FormItem {
 							break;
 						case 'addons':
 							foreach ($data[$param] as $addon) {
-								
-								$this->setAddon($addon['pos'], $addon['content'], $addon['type']?:'addon');
+								$this->setAddon(
+									isset($addon['pos'])?$addon['pos']:'l',
+									$addon['content'],
+									isset($addon['type'])?$addon['type']:'addon'
+								);
 							}
+							break;
+						case 'icon':
+							
+							$this->setAddon(
+								'l',
+								'<span class="'.$data[$param].'"></span>',
+								'addon'
+							);
 							break;
 						case 'wrap':
 							$this->wrap = $data[$param];
@@ -130,6 +141,9 @@ class FormItem {
                 $this->params = $params;
                 if (!isset($params['btn-new'])) {
                     $this->params['btn-new'] = true;
+				}
+				if (!isset($params['btn-confirmall'])) {
+                    $this->params['btn-confirmall'] = true;
                 }
 				// $this->params['config'] = $params['config'];
 				// $this->params['empty'] = $params['empty'];
@@ -264,6 +278,12 @@ class FormItem {
 					
 					<?php if ($this->type == "text" || $this->type == "search" || $this->type == "password"): /* TEXT */ ?>
 					<input type="<?=$this->type?>" class="<?=$class?$class:'form-control'?>" id="<?=$id?>" name="<?=$name?>" placeholder="<?=$this->label?>" value="<?=$this->value?>"<?=$properties?> <?=$data?>>
+					
+					<?php elseif($this->type == "image"): /* IMAGE */ ?>
+					<input type="file" id="<?=$id?>" name="<?=$name?>" accept="image/png, image/jpeg, image/jpg"  data-default-file="<?=$this->value?>" <?=$properties?> >
+					
+					<?php elseif($this->type == "upfile"): /* FILE */ ?>
+					<input type="file" id="<?=$id?>" name="<?=$name?>" accept=".xls, .xlsx, .pdf, .doc, .docx, .csv"  data-default-file="<?=$this->value?>" <?=$properties?> >
 					
 					<?php elseif($this->type == "textarea"): /* TEXTAREA */ ?>
 					<textarea class="<?=$class?$class:'form-control'?>" id="<?=$id?>" name="<?=$name?>" placeholder="<?=$this->label?>" <?=$properties?> <?=$data?>><?=$this->value?></textarea>
@@ -510,19 +530,43 @@ class FormItem {
 	public function buildArray($data, $values = null) {
 		if (!$data) {
 			return "undefined";
-		} else {
+		}
+		if (isset($data['fields'])) {
+			
 			extract($data);
 			$formid = isset($formid)?$formid:null;
-			$roweven = isset($roweven)?$roweven:false;
+			$roweven = isset($roweven)?$roweven:true;
 			$common = isset($common)?$common:[];
+			
+		} else {
+			$formid = null;
+			$roweven = true;
+			$common = [];
+			if (isset($data['formid'])) {
+				$formid = $data['formid'];
+				unset($data['formid']);
+			}
+			if (isset($data['roweven'])) {
+				$roweven = $data['roweven'];
+				unset($data['roweven']);
+			}
+			if (isset($data['common'])) {
+				$common = $data['common'];
+				unset($data['common']);
+			}
+			$fields = $data;
+			
 		}
 		
 		ob_start();
 		if ($formid) {
-			?><form id="<?=$formid?>"><?php
+			?><form id="<?=$formid?>" enctype="multipart/form-data"><?php
 		}
 		$i = 0;
-		foreach($fields as $resource) {
+		// error_log(print_r($fields));
+		foreach(array_keys($fields) as $key) {
+			$resource = $fields[$key];
+			if (!isset($resource['name']) && !is_numeric($key)) $resource['name'] = $key;
 			if ($values) {
 				//Setear valor a elemento
 				if (is_object($values)) {
@@ -559,18 +603,20 @@ class FormItem {
 		$config = json_encode($this->params['config']);
 		$empty = isset($this->params['empty'])?json_encode($this->params['empty']):false;
 		$addCallback = isset($this->params['addCallback'])?$this->params['addCallback']:false;
-		$classes = $this->classes?$this->classes:"table table-bordered table-condensed";
+		$classes = $this->classes?$this->classes:"table table-bordered table-hypercondensed";
 		ob_start(); ?>
 		<div id="<?=$name?>" <?=$properties?>>
             <textarea name="<?=$name?>" id="data" style="display: none;"><?=$value?$value:'null'?></textarea>
-            <pre id="config" style="display: none;"><?=$config?></pre>
+            <textarea id="config" style="display: none;"><?=$config?></textarea>
 			<?php if($empty): ?><pre id="emptyrow" style="display: none;"><?=$empty?></pre><?php endif; ?>
 			<table class="<?=$classes?>" style="width: 100%"></table>
 			<div class="text-right">
 				<?php if ($this->params['btn-new']): ?>
 					<button type="button" class="btn btn-link"  id="agregar" <?php if($addCallback): ?>data-callback="<?=$addCallback?>"<?php endif; ?>> <i class="fas fa-plus"></i> Agregar nuevo </button>
 				<?php endif; ?>
-				<button type="button" class="btn btn-link"  id="apply-all"> <i class="fa fa-check-double"></i> Confirmar todo </button>
+				<?php if ($this->params['btn-confirmall']): ?>
+					<button type="button" class="btn btn-link"  id="apply-all"> <i class="fa fa-check-double"></i> Confirmar todo </button>
+				<?php endif; ?>
 			</div>
 
         </div>

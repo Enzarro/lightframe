@@ -7,7 +7,21 @@ class sys_clients_model {
 	var $primaryKey = 'client_id';
 	var $fieldTypes = ['int', 'float', 'text', 'check', 'select', 'bselect', 'dtpicker', 'rut'];
 	var $fieldAttributes = ['primary' => 'PK', 'autonum' => 'Autonumeric', 'notnull' => 'Obligatorio', 'hidden' => 'Ocultar'];
-
+	var $system_schemas = [
+		'dbo',
+		'guest',
+		'INFORMATION_SCHEMA',
+		'sys',
+		'db_owner',
+		'db_accessadmin',
+		'db_securityadmin',
+		'db_ddladmin',
+		'db_backupoperator',
+		'db_datareader',
+		'db_datawriter',
+		'db_denydatareader',
+		'db_denydatawriter'
+	];
     function __construct() {
 		global $_DB;
 		$this->db = $_DB;
@@ -83,7 +97,7 @@ class sys_clients_model {
 				"orderable" => false,
 				"width" => "80px",
 				"searchable" => false
-            ],
+			],
             [
                 //DT
 				'dt' => $dtNum++,
@@ -106,17 +120,19 @@ class sys_clients_model {
 	
 	function get($id = null) {
 		global $_DB;
-		$userData = $this->login_model->getTokenData($_COOKIE['token']);
+		$userData = isset($_COOKIE['token']) ? $this->login_model->getTokenData($_COOKIE['token']) : 'admin';
+		// $userData = $this->login_model->getTokenData($_COOKIE['token']);
 		$grid = [];
         //Grilla según ID
-        if ($id) {
+        if ($id != null) {
+			// error_log($id);
 			if ($userData == "admin") {
 				$grid = $_DB->queryToArray("SELECT * FROM {$this->table} WHERE {$this->primaryKey} = {$id} AND (NOT deleted = 1 OR deleted IS NULL)");
 			} else {
 				$grid = $_DB->queryToArray(
 					"SELECT * FROM {$this->table}
-					INNER JOIN sys_usuarios_clients ON {$this->table}.{$this->primaryKey} = sys_usuarios_clients.{$this->primaryKey}
-					WHERE sys_usuarios_clients.usuario_id = {$userData->usuario_id}
+					WHERE 
+					client_id IN (SELECT {$this->primaryKey} FROM sys_usuarios_clients WHERE usuario_id = {$userData->usuario_id})
 					AND {$this->table}.{$this->primaryKey} = {$id}
 					AND (NOT deleted = 1 OR deleted IS NULL)");
 			}
@@ -127,10 +143,18 @@ class sys_clients_model {
 			if ($userData == "admin") {
 				$grid = $_DB->queryToArray("SELECT * FROM {$this->table} WHERE (NOT deleted = 1 OR deleted IS NULL)");
 			} else {
-				$grid = $_DB->queryToArray(
-					"SELECT * FROM {$this->table} 
-					INNER JOIN sys_usuarios_clients ON {$this->table}.{$this->primaryKey} = sys_usuarios_clients.{$this->primaryKey}
-					WHERE sys_usuarios_clients.usuario_id = {$userData->usuario_id} AND (NOT deleted = 1 OR deleted IS NULL)");
+				$query = 
+					"SELECT
+						*
+					FROM
+						{$this->table}
+					WHERE
+						client_id IN (SELECT {$this->primaryKey} FROM sys_usuarios_clients WHERE usuario_id = '{$userData->usuario_id}')
+						AND ( NOT deleted = 1 OR deleted IS NULL )";
+				// $query = "SELECT * FROM {$this->table} 
+				// INNER JOIN sys_usuarios_clients ON {$this->table}.{$this->primaryKey} = sys_usuarios_clients.{$this->primaryKey}
+				// WHERE sys_usuarios_clients.usuario_id = {$userData->usuario_id} AND (NOT deleted = 1 OR deleted IS NULL)";
+				$grid = $_DB->queryToArray($query);
 			}
 			if ($grid) {
 				$grid = $this->filterExistingProyectos($grid);
@@ -199,12 +223,29 @@ class sys_clients_model {
 		}
 	}
 	
-    function delete($list) {
+    function delete($list, $hard = false) {
 		global $_DB;
         $data = [
             'deleted' => 1
         ];
-        $_DB->queryToArray("UPDATE {$this->table} SET ".$this->utils->arrayToQuery('update', $data)." WHERE {$this->primaryKey} IN ".$this->utils->arrayToQuery('in', $list));
+		$_DB->queryToArray("UPDATE {$this->table} SET ".$this->utils->arrayToQuery('update', $data)." WHERE {$this->primaryKey} IN ".$this->utils->arrayToQuery('in', $list));
+
+		if ($hard) {
+			$schemas = $_DB->queryToArray("SELECT [db_name] FROM {$this->table} WHERE {$this->primaryKey} IN ".$this->utils->arrayToQuery('in', $list));
+			if ($schemas) {
+				$client_existing_schemas = array_column($schemas, 'db_name');
+				$client_existing_tables = $this->getExistingTables($client_existing_schemas);
+				// error_log('Existing schemas: '.json_encode($client_existing_tables));
+				//Eliminar tablas y esquemas; esquemas que no son del sistema
+				foreach (array_keys($client_existing_tables) as $schema) {
+					foreach ($client_existing_tables[$schema] as $table) {
+						//Drop tables
+						$_DB->query("DROP TABLE {$schema}.{$table};");
+					}
+				}
+			}
+		}
+		
         return [
             'type' => 'success',
             'title' => 'Registros eliminados',
@@ -213,7 +254,7 @@ class sys_clients_model {
 	}
 
 	
-	function consolidate($id, $emit =false) {
+	function consolidate($id, $emit = false) {
 		global $_DB;
 		global $config;
 		//Traer datos del cliente
@@ -242,12 +283,13 @@ class sys_clients_model {
 
 		//Iterar sobre cada una y...
 		foreach ($client_grids as $grid) {
+			// if ($grid['table_name'] != 'tbl_etapa') continue;
 			//Consolidar
 			$this->sys_grid_model->consolidate($grid['grid_id'], $clientData->db_name);
 
 			//Emitir actualizacion barra de carga
-			if ($emit && is_array($emit)) {
-				if(isset($emit['name'])){
+			if ($emit) {
+				if(is_array($emit) && isset($emit['name'])){
 					$bar = [
 						'bar_clients' => [
 							'name' => $emit['name'],
@@ -277,30 +319,32 @@ class sys_clients_model {
 			
 		}
 
-		if(isset($emit['name'])){
-			$bar = [
-				'bar_clients' => [
-					'name' => $emit['name'],
-					'current' => $emit['current'],
-					'max' => $emit['max'] 
-				],
-				'bar_grids' => [
-					'name' => "Ejecutando scripts SP",
-					'current' => count($client_grids),
-					'max' => count($client_grids)
-				]
-			];
-		} else {
-			$bar = [
-				'bar_grids' => [
-					'name' => "Ejecutando scripts SP",
-					'current' => count($client_grids),
-					'max' => count($client_grids)
-				]
-			];
-		}
+		if ($emit) {
+			if(is_array($emit) && isset($emit['name'])){
+				$bar = [
+					'bar_clients' => [
+						'name' => $emit['name'],
+						'current' => $emit['current'],
+						'max' => $emit['max'] 
+					],
+					'bar_grids' => [
+						'name' => "Ejecutando scripts SP",
+						'current' => count($client_grids),
+						'max' => count($client_grids)
+					]
+				];
+			} else {
+				$bar = [
+					'bar_grids' => [
+						'name' => "Ejecutando scripts SP",
+						'current' => count($client_grids),
+						'max' => count($client_grids)
+					]
+				];
+			}
 
-		utils::emit($emit['event'], $bar);
+			utils::emit($emit['event'], $bar);
+		}
 		
 		$this->utils->executeSP($clientData->db_name);
 
@@ -362,7 +406,7 @@ class sys_clients_model {
 					//Emitir actualizacion barra de carga
 					utils::emit('sys_clients:update-bar', [
 						'bar_clients' => [
-							'name' => $clientData->label,
+							'name' => $clientData->label." ".$this->utils->memory_usage(),
 							'current' => $client_current,
 							'max' => count($clients) + ($system_grids?1:0)
 						],
@@ -601,5 +645,18 @@ class sys_clients_model {
 			return $result;
 		}
 		
+	}
+
+	function getExistingSchemas($excludesystemschemas = true) {
+		global $_DB;
+		$system_schemas = $this->system_schemas;
+		$sql = "SELECT * FROM information_schema.schemata WHERE SCHEMA_NAME NOT IN ".$this->utils->arrayToQuery('in', $this->system_schemas);
+		$schemas = $_DB->queryToArray($sql);
+		if ($excludesystemschemas) {
+			$schemas = array_filter($schemas, function($schema) use ($system_schemas) {
+				return !in_array($schema['SCHEMA_NAME'], $system_schemas);
+			});
+		}
+		return $schemas;
 	}
 }

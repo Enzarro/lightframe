@@ -125,39 +125,45 @@ class sys_tree_model {
         return [
             [
                 'id' => 1,
-                'activo' => false,
+                'permiso' => 'Nuevo',
                 'key' => 'create',
-                'permiso' => 'Nuevo'
+                'activo' => false,
+                'fixed' => true
             ],
             [
                 'id' => 2,
-                'activo' => false,
+                'permiso' => 'Ver',
                 'key' => 'read',
-                'permiso' => 'Ver'
+                'activo' => false,
+                'fixed' => true
             ],
             [
                 'id' => 3,
-                'activo' => false,
+                'permiso' => 'Editar',
                 'key' => 'update',
-                'permiso' => 'Editar'
+                'activo' => false,
+                'fixed' => true
             ],
             [
                 'id' => 4,
-                'activo' => false,
+                'permiso' => 'Eliminar',
                 'key' => 'delete',
-                'permiso' => 'Eliminar'
+                'activo' => false,
+                'fixed' => true
             ],
             [
                 'id' => 5,
-                'activo' => false,
+                'permiso' => 'Exportar',
                 'key' => 'export',
-                'permiso' => 'Exportar'
+                'activo' => false,
+                'fixed' => true
             ],
             [
                 'id' => 6,
-                'activo' => false,
+                'permiso' => 'Importar',
                 'key' => 'import',
-                'permiso' => 'Importar'
+                'activo' => false,
+                'fixed' => true
             ]
         ];
     }
@@ -177,13 +183,20 @@ class sys_tree_model {
 				'targets' => $dtNum++,
 				'title' => "Permiso",
 				'data' => 'permiso',
-				// 'editType' => 'string'
+                'editType' => 'string',
+                'editConfig' => [
+                    'blockFixed' => true
+                ]
             ],
             [
 				'targets' => $dtNum++,
                 'title' => "Key",
                 'data' => 'key',
                 'width' => "100px",
+                'editType' => 'string',
+                'editConfig' => [
+                    'blockFixed' => true
+                ]
             ],
             [
                 'targets' => $dtNum++,
@@ -200,7 +213,7 @@ class sys_tree_model {
 				'width' => "105px",
 				'defaultContent' => '',
 				'editConfig' => [
-					'deleteExisting' => false,
+					'deleteExisting' => true,
 					'editExisting' => true
 				]
 			]
@@ -240,6 +253,7 @@ class sys_tree_model {
 
     function set($data_crud, $import = false) {
         global $_DB;
+        $_DB->update_sequence($this->table, $this->primaryKey);
         if (isset($data_crud["permisos_obj"])) {
             //Quitar los que no están marcados
             $data_crud["permisos_obj"] = array_values(array_filter($data_crud["permisos_obj"], function($permiso) {
@@ -276,9 +290,21 @@ class sys_tree_model {
             ]; 
         } else {
             if ($import) $data["{$this->primaryKey}"] = $data_crud["id"];
-            if ($import) $_DB->query("SET IDENTITY_INSERT {$this->table} ON");
+            if ($import) {
+                if ($config->database->type == 'pgsql') {
+
+				} else if ($config->database->type == 'mssql') {
+                    $_DB->query("SET IDENTITY_INSERT {$this->table} ON");
+				}
+            }
             $_DB->query("INSERT INTO {$this->table} ".$this->utils->arrayToQuery("insert", $data));
-            if ($import) $_DB->query("SET IDENTITY_INSERT {$this->table} OFF");
+            if ($import) {
+                if ($config->database->type == 'pgsql') {
+
+				} else if ($config->database->type == 'mssql') {
+                    $_DB->query("SET IDENTITY_INSERT {$this->table} OFF");
+				}
+            }
             return [
                 'type' => 'success',
                 'title' => 'Recurso creado',

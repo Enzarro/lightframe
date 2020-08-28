@@ -4,7 +4,7 @@ class users_model {
 
 	function __construct() {
 		$this->utils = new utils();
-		$this->frame_view = new frame_view();
+		// $this->frame_view = new frame_view();
 	}
 	
 

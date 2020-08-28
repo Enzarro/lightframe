@@ -81,4 +81,14 @@ class sys_socket {
         echo json_encode($_POST);
     }
 
+    function testpipe() {
+        // $data = utils::post('http://206.189.238.241:8000/ApiSr/raspberry/getRaspberry/', $_POST);
+        $data = utils::post('http://206.189.238.241:8000/ApiSr/raspberry/getPerifericosBySerial/', $_POST);
+        
+        $data = json_decode($data, true);
+        if (isset($data['perifericos'])) $data['perifericos'] = json_decode($data['perifericos'], true);
+        if (isset($data['raspberrys'])) $data['raspberrys'] = json_decode($data['raspberrys'], true);
+        echo json_encode($data);
+    }
+
 }

@@ -12,15 +12,15 @@ class sys_generic {
         $this->uri = $uri;
         $this->resource = $resource;
         $this->object = $this->sys_grid_model->get($this->frame_model->getResourceGrid($this->uri));
-        if ($this->object->target_schema == 2) {
-            $this->object->table = $client?"{$client->db_name}.{$this->object->table}":false;
-        } else if ($this->object->target_schema == 1) {
-            if ($config->database->type == 'pgsql') {
-                $this->object->table = "public.{$this->object->table}";
-            } else if ($config->database->type == 'mssql') {
-                $this->object->table = "dbo.{$this->object->table}";
-            }
-        }
+        // if ($this->object->target_schema == 2) {
+        //     $this->object->table = $client?"{$client->db_name}.{$this->object->table}":false;
+        // } else if ($this->object->target_schema == 1) {
+        //     if ($config->database->type == 'pgsql') {
+        //         $this->object->table = "public.{$this->object->table}";
+        //     } else if ($config->database->type == 'mssql') {
+        //         $this->object->table = "dbo.{$this->object->table}";
+        //     }
+        // }
 
         $this->resdata = $this->frame_model->getResourceByPath($this->uri);
 
@@ -39,14 +39,16 @@ class sys_generic {
             'primary' => $primaryKey
         ]);
 
+        $this->sys_print = new sys_print();
+
     }
 
     function main() {
         $this->frame_view->main([
             'menu' => $this->resource['funcion'],
-            'css' => ['datatables', 'datatables-select', 'datetimepicker'],
-            'js' => ['datatables', 'datatables-select', 'moment', 'datetimepicker', 'autonumeric', $this->jsData, '/js/system/'.get_class().'.js'],
-            'concatPlugins' => true,
+            'css' => ['datatables', 'datatables-select', 'datetimepicker', 'daterangepicker', 'dropify'],
+            'js' => ['datatables', 'datatables-select', 'moment', 'datetimepicker', 'daterangepicker', 'autonumeric', 'dropify', $this->jsData, '/js/system/'.get_class().'.js'],
+            'concatPlugins' => false,
             'cboClient' => $this->object->target_schema == 2,
             'body' => [
                 'icon' => $this->resdata->icono,
@@ -60,15 +62,15 @@ class sys_generic {
     }
 
     function list() {
-        echo json_encode($this->model->list($this->object));
+        echo json_encode($this->model->list());
     }
 
     function form() {
         if (!isset($_POST["id"])) {
-            echo $this->view->form($this->object);
+            echo $this->view->form();
         } else {
             $data = $this->model->get($_POST["id"], $this->object);
-            echo $this->view->form($this->object, $data);
+            echo $this->view->form($data);
         }
     }
 
@@ -77,8 +79,7 @@ class sys_generic {
     }
 
     function set() {
-        echo json_encode($this->model->set($_POST, $this->object));
-        // echo json_encode((object)$_POST["fields"][0]);
+        echo json_encode($this->model->set($_POST, $_FILES));
     }
 
     function delete() {
@@ -90,7 +91,13 @@ class sys_generic {
     }
 
     function export(){
-        echo json_encode($this->model->export($this->resdata));
+        //Definición de columnas
+        $excel = $this->model->export($this->resdata);
+        //Datos
+        if (isset($_POST["type"]) && $_POST["type"]=='export') {
+            $excel["data"] = $this->model->getall();
+        }
+        echo json_encode($excel);
     }
 
     function import(){

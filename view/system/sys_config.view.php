@@ -40,19 +40,19 @@ class sys_config_view {
                 'type-params' => [
                     'table' => array_map(function($dbcfg) {
                         return [$dbcfg->profile, $dbcfg->profile];
-                    }, $config->database_list)
+                    }, (isset($config->database_list)?$config->database_list:[]))
                 ],
-                'value' => $config->database->profile
+                'value' => (isset($config->database->profile)?$config->database->profile:null)
             ], [
                 'label' => 'Nombre perfil',
                 'name' => 'profile',
                 'type' => 'text',
-                'value' => $config->database->profile
+                'value' => (isset($config->database->profile)?$config->database->profile:null)
             ], [
                 'label' => 'Host',
                 'name' => 'host',
                 'type' => 'text',
-                'value' => $config->database->host
+                'value' => (isset($config->database->host)?$config->database->host:null)
             ], [
                 'label' => 'Puerto',
                 'name' => 'port',
@@ -110,6 +110,82 @@ class sys_config_view {
                 'type' => 'text'
             ]]
         ];
+    }
+
+    function wipe_resume($data) {
+        extract($data);
+        //clients, system_existing_tables, client_existing_tables: db_name
+        ob_start(); ?>
+
+        <h4>Tablas globales vaciadas (public/dbo)</h4>
+        <table class="table table-xs table-bordered" style="font-size: x-small;">
+            <thead>
+                <tr>
+                    <th>DBO</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($system_clean_tables as $table): ?>
+                <tr>
+                    <td><?=$table?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <h4>Tablas globales eliminadas (public/dbo)</h4>
+        <table class="table table-xs table-bordered" style="font-size: x-small;">
+            <thead>
+                <tr>
+                    <th>DBO</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($system_existing_tables as $table): ?>
+                <tr>
+                    <td><?=$table?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <h4>Tablas de clientes</h4>
+        <?php foreach (array_keys($client_existing_tables) as $client): ?>
+        <table class="table table-xs table-bordered" style="font-size: x-small;">
+            <thead>
+                <tr>
+                    <th><?=$client?></th>
+                </tr>
+                <?php if(is_array($client_existing_tables[$client]) && count($client_existing_tables[$client])): //No creado ?>
+                <tr>
+                    <td>Se dropearon <b><?=count($client_existing_tables[$client])?></b> tablas. <a href="javascript:;" class="wipe-toggle">Mostrar listado</a></td>
+                </tr>
+                <?php endif; ?>
+            </thead>
+
+            <?php if(is_array($client_existing_tables[$client]) && count($client_existing_tables[$client])): //No creado ?>
+            <tbody style="display: none;">
+            <?php else: ?>
+            <tbody>
+            <?php endif; ?>
+                <?php if($client_existing_tables[$client] === []): //Sin tablas ?>
+                <tr>
+                    <td>No habían tablas en el esquema</td>
+                </tr>
+                <?php else: ?>
+
+                <?php foreach ($client_existing_tables[$client] as $table): ?>
+                <tr>
+                    <td><?=$table?></td>
+                </tr>
+                <?php endforeach; ?>
+
+                <?php endif; ?>
+            </tbody>
+        </table>
+        <?php endforeach; ?>
+        
+        <?php echo ob_get_clean();
     }
 
     function html($data = null) {

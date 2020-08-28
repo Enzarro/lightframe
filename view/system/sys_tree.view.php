@@ -219,7 +219,7 @@ class sys_tree_view {
                     'type-params' => [
                         'config' => $this->model->getCamposDTConfig(),
                         'empty' => $this->model->getCamposDTEmptyRow(),
-                        'btn-new' => false
+                        'btn-new' => true
                     ],
                     'prop' => [
                         'data-fitype="dtable"' => true,

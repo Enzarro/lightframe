@@ -18,6 +18,8 @@ class sys_clients_view {
                 <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
                 <button id="main-delete" class="btn btn-danger"><span class="fa fa-trash"></span> Eliminar</button>
                 <button id="main-consolidate" class="btn btn-warning"><span class="fa fa-database"></span> Consolidar</button>
+                <button id="main-spdbo" class="btn btn-warning"><span class="fa fa-file-code"></span> SP DBO</button>
+                <button id="main-spcli" class="btn btn-warning"><span class="fa fa-file-code"></span> SP CLI</button>
                 <button id="main-cleansing" class="btn btn-outline-flickr"><span class="fa fa-broom"></span> Limpiar</button>
             </div>					
             <div class="card-body">						

@@ -43,8 +43,35 @@ class sys_clients {
     }
 
     function consolidate() {
+        set_time_limit(60 * 10);
         //Consolidar cliente seleccionado
-        echo json_encode($this->model->consolidate($_POST['id']));
+        echo json_encode($this->model->consolidate($_POST['id'], ['event' => 'sys_clients']));
+    }
+
+    function spdbo() {
+        //Consolidar sp de cliente seleccionado
+        $this->utils->executeSP('dbo');
+        echo json_encode([
+			'type' => 'success',
+			'text' => 'Los SP del esquema han sido consolidados'
+		]);
+    }
+
+    function spcli() {
+        //Consolidar sp de cliente seleccionado
+        $clients = $this->model->get();
+        $result = [];
+        foreach (array_keys($clients) as $key) {
+            $clients[$key]["db_name"] = trim($clients[$key]["db_name"]);
+            $clientData = (object)$clients[$key];
+            $this->utils->executeSP($clientData->db_name);
+            $result = $this->utils->execSPFailReport;
+        }
+        echo json_encode([
+			'type' => 'success',
+            'title' => 'Los SP de esquemas cli han sido consolidados',
+            'html' => '<pre>'.json_encode($result, JSON_PRETTY_PRINT).'</pre>'
+		]);
     }
 
     function sp() {

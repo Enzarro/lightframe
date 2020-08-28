@@ -12,7 +12,7 @@ class sys_config {
             'menu' => get_class(),
             // 'css' => ['datatables'],
             'js' => [/*'datatables', */'/js/system/sys_config.js'],
-            'concatPlugins' => true,
+            'concatPlugins' => false,
             'cboClient' => false,
             'body' => [
                 'title' => 'Configuraciones',
@@ -98,6 +98,13 @@ class sys_config {
             }
         }
         echo json_encode($return);
+    }
+
+    function wipedb() {
+        $data = $this->model->wipedb();
+        // echo json_encode($data, JSON_PRETTY_PRINT);
+        // return;
+        echo $this->view->wipe_resume($data);
     }
 
     //DB

@@ -39,18 +39,19 @@ class lightframe {
         }
 
         //Register Administrador
-        if($uris[0] == "adminregister" && (!isset($uris[1]) || $uris[1] == "dte" || $uris[1] == "set" || $uris[1] == "terms")){
+        if($uris[0] == "adminregister" && (!isset($uris[1]) || $uris[1] == "dte" || $uris[1] == "set" || $uris[1] == "terms" 
+                || $uris[1] == "validAdm" || $uris[1] == "notifications")){
             $saltarvalidacion = true;
         }
         //Usuario
-        if($uris[0] == "users" && (!isset($uris[1]) || $uris[1] == "validateAccount")){
+        if($uris[0] == "users" && (isset($uris[1]) && $uris[1] == "validateAccount")){
             $saltarvalidacion = true;
         }
         //Eventos
         if($uris[0] == "eventos") {
             $saltarvalidacion = true;
         }
-		
+
 		//Mi Perfil
 		if($uris[0] == "sys_profile" && (!isset($uris[1]) || $uris[1] == "setuser" || $uris[1] == "setlogin")){
             $saltarvalidacion = true;

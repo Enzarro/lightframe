@@ -1,5 +1,10 @@
 <?php
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+
 class utils {
     function __construct() {
         global $_DB;
@@ -106,7 +111,8 @@ class utils {
         'icons'
     ];
 
-    function pluginLoader($plugins, $filetype = null, $concat = false) {     
+    function pluginLoader($plugins, $filetype = null, $concat = false) {
+        
         ob_start();
         
         foreach ($plugins as $plugin) {
@@ -117,22 +123,31 @@ class utils {
                 if ($concat && !in_array($plugin, $this->excludeConcat)) {
                     foreach($this->pluginlist[$plugin] as $kLink) {
                         //Cargar los archivos correspondientes al plugin
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                            ?><script data-name="<?=$kLink?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></script><?php
+                        if (file_exists(root.$kLink)) {
+                            if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                                ?><script data-name="<?=$kLink?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></script><?php
+                            }
+                            if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                                ?><style data-name="<?=$kLink."?".filemtime(root.$kLink)?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></style><?php
+                            }
+                        } else {
+                            ?><script data-name="<?=$kLink?>">console.error("File <?=$kLink?> does not exist")</script><?php
                         }
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                            ?><style data-name="<?=$kLink."?".filemtime(root.$kLink)?>"><?php echo PHP_EOL.file_get_contents(root.$kLink).PHP_EOL; ?></style><?php
-                        }
+                        
                     }
                 } else {
                     foreach($this->pluginlist[$plugin] as $kLink) {
                         $public = public_url;
-                        //Cargar los archivos correspondientes al plugin
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                            ?><script src="<?php echo public_url.$kLink."?".filemtime(root.$kLink); ?>"></script><?php echo PHP_EOL;
-                        }
-                        if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                            ?><link href="<?php echo public_url.$kLink."?".filemtime(root.$kLink); ?>" rel="stylesheet"><?php echo PHP_EOL;
+                        if (file_exists(root.$kLink)) {
+                            //Cargar los archivos correspondientes al plugin
+                            if (pathinfo($kLink, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                                ?><script src="<?php echo /*public_url.*/$kLink."?".filemtime(root.$kLink); ?>"></script><?php echo PHP_EOL;
+                            }
+                            if (pathinfo($kLink, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                                ?><link href="<?php echo /*public_url.*/$kLink."?".filemtime(root.$kLink); ?>" rel="stylesheet"><?php echo PHP_EOL;
+                            }
+                        } else {
+                            ?><script data-name="<?=$kLink?>">console.error("File <?=$kLink?> does not exist")</script><?php
                         }
                     }
                 }
@@ -147,20 +162,28 @@ class utils {
                         ?><link href="<?php echo $plugin; ?>" rel="stylesheet"><?php
                     }
                 } elseif ($concat && !in_array($plugin, $this->excludeConcat)) {
-                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                        ?><script data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></script><?php
-                    }
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                        ?><style data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></style><?php
+                    if (file_exists(root.$plugin)) {
+                        //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
+                        if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                            ?><script data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></script><?php
+                        }
+                        if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                            ?><style data-name="<?=$plugin?>"><?php echo file_get_contents(root.$plugin); ?></style><?php
+                        }
+                    } else {
+                        ?><script data-name="<?=$plugin?>">console.error("File <?=$plugin?> does not exist")</script><?php
                     }
                 } else {
-                    //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
-                        ?><script src="<?php echo public_url.$plugin."?".filemtime(root.$plugin); ?>"></script><?php
-                    }
-                    if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
-                        ?><link href="<?php echo public_url.$plugin; ?>" rel="stylesheet"><?php
+                    if (file_exists(root.$plugin)) {
+                        //El plugin solicitado no está en el listado, interpretar como ruta directa a archivo
+                        if (pathinfo($plugin, PATHINFO_EXTENSION) == 'js' && $filetype != 'css') {
+                            ?><script src="<?php echo /*public_url.*/$plugin."?".filemtime(root.$plugin); ?>"></script><?php
+                        }
+                        if (pathinfo($plugin, PATHINFO_EXTENSION) == 'css' && $filetype != 'js') {
+                            ?><link href="<?php echo /*public_url.*/$plugin; ?>" rel="stylesheet"><?php
+                        }
+                    } else {
+                        ?><script data-name="<?=$plugin?>">console.error("File <?=$plugin?> does not exist")</script><?php
                     }
                 }
             }
@@ -342,7 +365,7 @@ class utils {
             ]
         ];
         $context  = stream_context_create($options);
-        $result = file_get_contents($url, false, $context);
+        $result = @file_get_contents($url, false, $context);
 
         if (isset($_SESSION["ss_cliente"])) {
             self::ajaxTemp(array_replace_recursive([
@@ -476,65 +499,103 @@ class utils {
             $keys = array_keys($columnDefs);
             $lastKey = end($keys);
             foreach($keys as $ckey) {
-                //Tipos de datos
-                if (in_array('int', $columnDefs[$ckey])) {
-                    if (in_array('autonum', $columnDefs[$ckey])) {
+                if ($this->isMultiArray($columnDefs[$ckey])) {
+                    //Setear campos a partir de tipo de campo cuando no haya definicion de tipo de columna (old style)
+
+                    //Tipos de datos
+                    if (in_array('int', $columnDefs[$ckey])) {
+                        if (in_array('autonum', $columnDefs[$ckey])) {
+                            if ($config->database->type == "pgsql") {
+                                $qryCreate .= "{$ckey} SERIAL";
+                            } else if ($config->database->type == "mssql") {
+                                $qryCreate .= "{$ckey} INT IDENTITY(1,1)";
+                            }
+                        } else {
+                            $qryCreate .= "{$ckey} INT";
+                        }
                         if ($config->database->type == "pgsql") {
-                            $qryCreate .= "{$ckey} SERIAL";
+                            $columns[$ckey] = 'int4';
                         } else if ($config->database->type == "mssql") {
-                            $qryCreate .= "{$ckey} INT IDENTITY(1,1)";
+                            $columns[$ckey] = 'int';
+                        }
+                    } else if (in_array('varchar', $columnDefs[$ckey])) {
+                        $qryCreate .= "{$ckey} VARCHAR(255)";
+                        $columns[$ckey] = 'varchar';
+                    } else if (in_array('varcharmax', $columnDefs[$ckey])) {
+                        if ($config->database->type == "pgsql") {
+                            $qryCreate .= "{$ckey} VARCHAR";
+                            $columns[$ckey] = 'varchar';
+                        } else if ($config->database->type == "mssql") {
+                            $qryCreate .= "{$ckey} NVARCHAR(MAX)";
+                            $columns[$ckey] = 'nvarchar';
+                        }
+                    } else if (in_array('float', $columnDefs[$ckey])) {
+                        $qryCreate .= "{$ckey} FLOAT";
+                        if ($config->database->type == "pgsql") {
+                            $columns[$ckey] = 'float4';
+                        } else if ($config->database->type == "mssql") {
+                            $columns[$ckey] = 'float';
+                        }
+                    } else if (in_array('timestamp', $columnDefs[$ckey])) {
+                        if ($config->database->type == "pgsql") {
+                            $qryCreate .= "{$ckey} TIMESTAMP";
+                            $columns[$ckey] = 'timestamp';
+                        } else if ($config->database->type == "mssql") {
+                            $qryCreate .= "{$ckey} DATETIME";
+                            $columns[$ckey] = 'datetime';
+                        }
+                    } else if (in_array('date', $columnDefs[$ckey])) {
+                        $qryCreate .= "{$ckey} DATE";
+                        $columns[$ckey] = 'date';
+                    } else if (in_array('time', $columnDefs[$ckey])) {
+                        $qryCreate .= "{$ckey} TIME";
+                        $columns[$ckey] = 'time';
+                    } else if (in_array('json', $columnDefs[$ckey])) {
+                        if ($config->database->type == "pgsql") {
+                            $qryCreate .= "{$ckey} JSON";
+                            $columns[$ckey] = 'json';
+                        } else if ($config->database->type == "mssql") {
+                            $qryCreate .= "{$ckey} NVARCHAR(MAX)";
+                            $columns[$ckey] = 'nvarchar';
+                        }
+                    }
+
+                    //Características
+                    if (in_array('primary', $columnDefs[$ckey])) {
+                        $qryCreate .= " PRIMARY KEY";
+                    }
+                    if (in_array('notnull', $columnDefs[$ckey])) {
+                        $qryCreate .= " NOT NULL";
+                    }
+                    
+                } else {
+                    if (isset($columnDefs[$ckey]['length']) && $columnDefs[$ckey]['length'] == 'max' && $config->database->type == "pgsql") {
+                        $columnDefs[$ckey]['length'] = null;
+                    }
+                    //Características
+                    if (isset($columnDefs[$ckey]['attr'])) {
+                        if ($columnDefs[$ckey]['type'] == 'int' && in_array('autonum', $columnDefs[$ckey]['attr'])) {
+                            if ($config->database->type == "pgsql") {
+                                $qryCreate .= "{$ckey} SERIAL";
+                            } else if ($config->database->type == "mssql") {
+                                $qryCreate .= "{$ckey} INT IDENTITY(1,1)";
+                            }
+                        } else {
+                            $qryCreate .= ("{$ckey} {$columnDefs[$ckey]['type']}" . (isset($columnDefs[$ckey]['length'])?"({$columnDefs[$ckey]['length']})":""));
+                        }
+                        $columns[$ckey] = $columnDefs[$ckey]['type'];
+                        if (in_array('primary', $columnDefs[$ckey]['attr'])) {
+                            $qryCreate .= " PRIMARY KEY";
+                        }
+                        if (in_array('notnull', $columnDefs[$ckey]['attr'])) {
+                            $qryCreate .= " NOT NULL";
                         }
                     } else {
-                        $qryCreate .= "{$ckey} INT";
-                    }
-                    if ($config->database->type == "pgsql") {
-                        $columns[$ckey] = 'int4';
-                    } else if ($config->database->type == "mssql") {
-                        $columns[$ckey] = 'int';
-                    }
-                } else if (in_array('varchar', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} VARCHAR(255)";
-                    $columns[$ckey] = 'varchar';
-                } else if (in_array('varcharmax', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} NVARCHAR(MAX)";
-                    $columns[$ckey] = 'nvarchar';
-                } else if (in_array('float', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} FLOAT";
-                    if ($config->database->type == "pgsql") {
-                        $columns[$ckey] = 'float4';
-                    } else if ($config->database->type == "mssql") {
-                        $columns[$ckey] = 'float';
-                    }
-                } else if (in_array('timestamp', $columnDefs[$ckey])) {
-                    if ($config->database->type == "pgsql") {
-                        $qryCreate .= "{$ckey} TIMESTAMP";
-                        $columns[$ckey] = 'timestamp';
-                    } else if ($config->database->type == "mssql") {
-                        $qryCreate .= "{$ckey} DATETIME";
-                        $columns[$ckey] = 'datetime';
-                    }
-                } else if (in_array('date', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} DATE";
-                    $columns[$ckey] = 'date';
-                } else if (in_array('time', $columnDefs[$ckey])) {
-                    $qryCreate .= "{$ckey} TIME";
-                    $columns[$ckey] = 'time';
-                } else if (in_array('json', $columnDefs[$ckey])) {
-                    if ($config->database->type == "pgsql") {
-                        $qryCreate .= "{$ckey} JSON";
-                        $columns[$ckey] = 'json';
-                    } else if ($config->database->type == "mssql") {
-                        $qryCreate .= "{$ckey} NVARCHAR(MAX)";
-                        $columns[$ckey] = 'nvarchar';
+                        $qryCreate .= ("{$ckey} {$columnDefs[$ckey]['type']}" . (isset($columnDefs[$ckey]['length'])?"({$columnDefs[$ckey]['length']})":""));
+                        $columns[$ckey] = $columnDefs[$ckey]['type'];
                     }
                 }
-                //Características
-                if (in_array('primary', $columnDefs[$ckey])) {
-                    $qryCreate .= " PRIMARY KEY";
-                }
-                if (in_array('notnull', $columnDefs[$ckey])) {
-                    $qryCreate .= " NOT NULL";
-                }
+                
                 //Coma final
                 if ($lastKey != $ckey) {
                     $qryCreate .= ", ";
@@ -564,7 +625,7 @@ class utils {
                 }
             }
         }
-		$qryCreate .= ")";
+        $qryCreate .= ")";
 
 		$createTable = true;
 		//Check if temp table exists
@@ -594,8 +655,9 @@ class utils {
                 }
 			}
 			//Compare columns
-			$comparison = array_diff_assoc($columns, $dbColumns);
-			if (!empty($comparison)) {
+            $comparisonAdd = array_diff_assoc($columns, $dbColumns);
+            $comparisonSub = array_diff_assoc($dbColumns, $columns);
+			if (!empty($comparisonAdd) || !empty($comparisonSub)) {
                 if ($preserve) {
                     //Traer toda la data desde la tabla que se va a droppear
                     $tmpData = $_DB->queryToArray("SELECT * FROM {$schema}.{$table}");
@@ -628,7 +690,7 @@ class utils {
                     }
                 }
                 $_DB->query("DROP TABLE {$schema}.{$table};");
-                error_log("Dropping table {$schema}.{$table}, comparison: ".json_encode($comparison), 0);
+                error_log("Dropping table {$schema}.{$table}, comparison: ".json_encode($comparisonAdd).json_encode($comparisonSub), 0);
                 error_log("DB Columns: ".json_encode($dbColumns));
                 error_log("New Columns: ".json_encode($columns));
 			} else {
@@ -680,13 +742,13 @@ class utils {
     }
     
     function saveTempCSV($array, $table, $schema) {
-        $dir = base."/tempcsv/{$schema}/";
+        $dir = base."tempcsv/{$schema}/";
         //Crear carpeta
-        if (is_dir($dir)) {
+        if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
         //Abrir archivo
-        $fp = fopen("{$dir}{$table}-".date("Ymd").".csv", 'w');
+        $fp = fopen("{$dir}{$table}-".date("YmdHis").".csv", 'w');
         //Escribir nombres de columnas
         fputcsv($fp, array_keys($array[0]));
         //Escribir data
@@ -710,6 +772,7 @@ class utils {
         }
     }
 
+    var $execSPFailReport = [];
     function executeSP($schema, $target = null) {
         if ($target == null) {
             if ($schema == 'dbo') {
@@ -750,7 +813,10 @@ class utils {
                         $sql = str_replace('__client', $schema, $sql);
                         
                     }
-                    $this->db->query($sql);
+                    $result = $this->db->query($sql);
+                    if ($result == false) {
+                        $this->execSPFailReport[$schema][] = $target;
+                    }
                 }
             }
         }
@@ -758,7 +824,7 @@ class utils {
     }
 
     static function safeInsert($table, $data) {
-        global $_DB;
+        /*global $_DB;
 
         //Check if data exists
         $res = $_DB->query("SELECT COUNT(*) FROM {$table} WHERE ".$this->arrayToQuery('and', $data));
@@ -767,7 +833,7 @@ class utils {
             if ($_DB->query("INSERT INTO {$table} ".$this->arrayToQuery('insert', $data))) {
                 return true;
             }
-        }
+        }*/
         return false;
     }
 
@@ -796,7 +862,7 @@ class utils {
         return $date;
     }
 
-    static function var_doom($var, $pre) {
+    static function var_doom($var, $pre = true) {
         if ($pre) echo '<pre>';
         echo json_encode($var, JSON_PRETTY_PRINT);
         if ($pre) echo '</pre>';
@@ -810,12 +876,13 @@ class utils {
         $finalArray = [];
         foreach ($keys as $key) {
             //Vacío (null)
-            if ($array[$key] === '' || $array[$key] === null) {
+            if ($array[$key] === '' || $array[$key] === null || strtolower($array[$key]) === 'null') {
                 $finalString .= 'null';
                 $finalArray[] = 'null';
             }
             //Es numérico (sin comillas)
-            elseif (is_int($array[$key]) || is_float($array[$key])) {
+            elseif (!is_string($array[$key]) && (is_int($array[$key]) || is_float($array[$key]))) {
+                $array[$key] = str_replace(',', '.', "$array[$key]");
                 $finalString .= "$array[$key]";
                 $finalArray[] = "$array[$key]";
             } 
@@ -875,10 +942,22 @@ class utils {
      */
     function arrayToQuery($action, $array = null) {
         global $config;
+        if (!is_null($array) && !is_array($array)) $array = [$array];
         if (is_array($action)) {
             extract($action);
             if (!isset($where)) {
                 $where = null;
+            } else if (is_array($where)) {
+                if ($where) {
+                    if ($this->isMultiArray($where)) {
+                        $where = "WHERE ".$this->multipleArrayToWhere($where);
+                    } else {
+                        $where = "WHERE ".$this->arrayToQuery('and', $where);
+                    }
+                } else {
+                    $where = null;
+                }
+                    
             }
         }
         $jsonChars = ['"', '[', ']'];
@@ -961,6 +1040,30 @@ class utils {
             }
             return $sQuery;
         } else {
+            return false;
+        }
+    }
+
+    function toMultiArray($data) {
+        if (!$data) return;
+        $keys_first = array_keys($data);
+        if (is_int($keys_first[0])) {
+            //Es multi, devolver
+            return $data;
+        } else {
+            //No es multi, envolver y devolver
+            return [$data];
+        }
+    }
+
+    function isMultiArray($data) {
+        if (!$data) return;
+        $keys_first = array_keys($data);
+        if (is_int($keys_first[0])) {
+            //Es multi, devolver
+            return true;
+        } else {
+            //No es multi, envolver y devolver
             return false;
         }
     }
@@ -1329,6 +1432,23 @@ class utils {
            return 'Message sent!';
         }
 
+    }
+
+    static function isJson($string) {
+        json_decode($string);
+        return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+    function memory_usage() {
+        $mem_usage = memory_get_usage(true);
+        if ($mem_usage < 1024) {
+            $mem_usage .= ' b';
+        } elseif ($mem_usage < 1048576) {
+            $mem_usage = round($mem_usage/1024,2) . ' kb';
+        } else {
+            $mem_usage = round($mem_usage/1048576,2) . ' mb';
+        }
+        return $mem_usage;
     }
 
 }

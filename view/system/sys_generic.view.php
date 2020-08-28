@@ -50,7 +50,7 @@ class sys_generic_view {
         </div>
         
         <div class="col-md-12" style="min-height: 100% !important;">
-            <form class="form form-horizontal" id="jsonxls" action="http://34.236.202.115/" target="_blank" method="post">
+            <form class="form form-horizontal" id="jsonxls" action="/sys_print/jsontoxls" target="_blank" method="post">
                 <textarea name="JSONtoXLS" id="JSONtoXLS" style="display:none;"></textarea>             
             </form>
         </div> 
@@ -70,8 +70,8 @@ class sys_generic_view {
         </script><?php return ob_get_clean();
     }
 
-    function form($object, $data = null) {
-        // $fields = $object->fields;
+    function form($data = null, $returnarray = false) {
+        $object = $this->object;
 
         $fields = array_filter($object->fields, function($field) {
             return !in_array('hiddenForm', $field->attr);
@@ -86,7 +86,7 @@ class sys_generic_view {
                 'type' => $field->type
             ];
             //Campos de tipo texto
-            if (in_array($field->type, ['int', 'float', 'rut', 'dtpicker', 'datetime', 'date', 'time'])) {
+            if (in_array($field->type, ['int', 'float', 'rut', 'dtpicker', 'datetime', 'date', 'time', 'month'])) {
                 $finalField['type'] = 'text';
                 
                 //Campo de tipo autonumerico
@@ -100,6 +100,34 @@ class sys_generic_view {
                 if ($field->type == 'rut') {
                     $finalField['prop']['data-fitype="rut"'] = true;
                 }
+
+                //Campo de tipo fecha
+                if (in_array($field->type, ['month'])) {
+                    $finalField['prop']['data-fitype="dtpicker"'] = true;
+                    $finalField['prop']["data-fisettings='".json_encode([
+                        'locale' => 'es',
+                        'format' => 'YYYY-MM',
+                        'viewMode' => 'months',
+                    ])."'"] = true;
+                }
+
+                //Campo de tipo dtpicker
+                if (in_array($field->type, ['datetime', 'dtpicker'])) {
+                    $finalField['prop']['data-fitype="drpicker"'] = true;
+                    $finalField['prop']["data-fisettings='".json_encode([
+                        'locale' => [   
+                            'format' => 'YYYY-MM-DD hh:mm:ss',
+                            'customRangeLabel' => "Selecciona una fecha",
+                            'daysOfWeek' => ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+                            'monthNames' => ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+                            'firstDay' => 1,
+                        ],
+                        'timePicker' => true,
+                        'singleDatePicker' => true,
+                        'parentEl' => ".modal-body",
+                    ])."'"] = true;
+                }
+               
                 //Campo de tipo entero
                 if ($field->type == 'int' && !in_array('primary', $field->attr)) {
                     $finalField['prop']['data-fitype="anumeric"'] = true;
@@ -124,6 +152,8 @@ class sys_generic_view {
                         'wEmpty' => 'zero'
                     ])."'"] = true;
                 }
+
+                
             }
             if (in_array($field->type, ['select', 'bselect'])) {
                 $finalField['type'] = 'select';
@@ -137,6 +167,17 @@ class sys_generic_view {
                     ])."'"] = true;
                 }
             }
+
+            if ($field->type == 'check') {
+                $finalField['type'] = 'checkbox';
+            }
+
+            if(in_array($field->type, ['image'])){
+                $finalField['type'] = 'image';
+                $finalField['prop']['data-fitype="image"'] = true;
+            }
+            
+
             if (in_array('notnull', $field->attr)) {
                 $finalField['prop']['required'] = true;
             }
@@ -144,6 +185,10 @@ class sys_generic_view {
             return $finalField;
         }, $fields);
 
+        
+        if ($data) {
+            $fields = $this->setData($fields, $data);
+        }
         $form = [
             'formid' => 'form-generic',
             'roweven' => true,
@@ -154,12 +199,29 @@ class sys_generic_view {
             ],
             'fields' => $fields
         ];
+        if ($returnarray) return $form;
         // if ($data) {
         //     $data->fields = utils::dtBuildDataFromConfig($this->model->getCamposDTConfig(), $data->fields)['data'];
         // }
         ob_start(); ?>
-        <?=$this->FormItem->buildArray($form, $data)?>
+        <?=$this->FormItem->buildArray($form)?>
         <?php return ob_get_clean();
+    }
+
+    function setData($fields, $values) {
+        if (!$fields || !$values) return;
+        return array_map(function($resource) use ($values) {
+            if ($values) {
+				//Setear valor a elemento
+				if (is_object($values)) {
+					$values = (array)$values;
+				}
+				if (isset($values[$resource['name']])) {
+					$resource['value'] = $values[$resource['name']];
+				}
+            }
+            return $resource;
+        }, $fields);
     }
 
     function resume($data = null) {

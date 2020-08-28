@@ -8,6 +8,21 @@ class sys_grid_model {
 	var $tableII = 'sys_grids_fields';
 	var $primaryKeyII = 'field_id';
 	var $tableIII = 'sys_fields_attrs';
+	var $dbColumnTypes = [
+		'',
+		'int',
+		'float',
+		'varchar',
+		'textarea',
+		'datetime',
+		'date',
+		'time',
+		'timestamp',
+		'timestampz',
+		'json',
+		'jsonb',
+		'byte'
+	];
 	var $fieldTypes = [
 		'int',
 		'float',
@@ -19,10 +34,11 @@ class sys_grid_model {
 		'month',
 		'date',
 		'time',
+		'image',
 		'datetime',
 		'dtpicker',
 		'rut'
-	];
+	];   
 	var $fieldAttributes = [
 		'primary' => 'PK',
 		'autonum' => 'Autonumeric',
@@ -65,6 +81,7 @@ class sys_grid_model {
 				'alias' => 'target_schema',
 				'title' => 'Esquema',
 				"width" => "10px",
+				'visible' => false
 			],
 			[
 				//DB
@@ -72,11 +89,12 @@ class sys_grid_model {
 				'db' => "name",
 				'formatter' => function ($data, $row) {
 					ob_start(); ?>
-					<b><?=$data?></b> [<?=$row['table_name']?>]
+					<b><?=$data?></b><br><?=$row['target_schema']?>.[<?=$row['table_name']?>]
 					<?php return ob_get_clean();
 				},
 				//DT
-                'title' => 'Nombre'
+				'title' => 'Nombre',
+				
 			],
 			[
 				//DB
@@ -150,9 +168,10 @@ class sys_grid_model {
 		return SSP::simple( $_POST, $config->database, $this->table, $this->primaryKey, $columns, $filtro);
 	}
 	
-	function get($id = null) {
+	function get($id = null, $returnold = false) {
 		global $_DB;
 		global $client;
+		global $config;
 
 		if (!$id) {
 			//Listado de grillas
@@ -161,13 +180,25 @@ class sys_grid_model {
 
 		//Según nombre de tabla
 		if (!is_numeric($id)) {
-			$id = $_DB->queryToSingleVal("SELECT {$this->primaryKey} FROM {$this->table} WHERE table_name = {$id}");
+			$id = $_DB->queryToSingleVal("SELECT {$this->primaryKey} FROM {$this->table} WHERE table_name = '{$id}'");
 		}
 
 		//Grilla según ID
-		$grid = $_DB->queryToArray("SELECT {$this->primaryKey} AS id, name, table_name AS 'table', target_schema FROM {$this->table} WHERE {$this->primaryKey} = {$id}");
+		$grid = $_DB->queryToArray("SELECT {$this->primaryKey} AS id, name, table_name AS \"table\", target_schema FROM {$this->table} WHERE {$this->primaryKey} = {$id}");
+		
 		//Campos de la grilla
-		$grid_fields = $_DB->queryToArray("SELECT {$this->primaryKeyII} AS id, name, column_name AS 'column', type, origin, 0 as 'order' FROM {$this->tableII} WHERE {$this->primaryKey} = {$id} ORDER BY orden ASC");
+		$grid_fields = $_DB->queryToArray(
+			"SELECT 
+				{$this->primaryKeyII} AS id, 
+				name, 
+				type, 
+				column_name AS \"column\", 
+				column_type,
+				column_length,
+				origin 
+			FROM {$this->tableII} 
+			WHERE {$this->primaryKey} = {$id} 
+			ORDER BY orden ASC");
 		$i = 1;
 		foreach(array_keys($grid_fields) as $key) {
 			$grid_fields[$key]['orden'] = $i++;
@@ -196,7 +227,10 @@ class sys_grid_model {
 			return $field;
 		}, $grid_fields);
 		//Retornar objeto final
-		return $grid;
+		if ($returnold) {
+			return $grid;
+		}
+		return new sys_grid_obj_model($grid);
 	}
 
 	/**
@@ -244,6 +278,8 @@ class sys_grid_model {
 	function set($data, $insertid = false) {
 		global $_DB;
 		global $config;
+		$_DB->update_sequence($this->table, $this->primaryKey);
+		$_DB->update_sequence($this->tableII, $this->primaryKeyII);
 		if (!$insertid && (isset($data['id']) && $data['id'])) {
 			//:: UPDATE ::
 			//Grid
@@ -261,8 +297,10 @@ class sys_grid_model {
 				$newfield = [
 					"{$this->primaryKey}" => $obj_grid_id,
 					'name' => $field['name'],
-					'column_name' => $field['column'],
 					'type' => $field['type'],
+					'column_name' => $field['column'],
+					'column_type' => $field['column_type'],
+					'column_length' => $field['column_length'],
 					'origin' => $field['origin'],
 					'orden' => $field['orden']
 				];
@@ -407,9 +445,21 @@ class sys_grid_model {
 					'id' => $obj_grid_id
 				];
 			}
-			if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids ON");
+			if ($insertid) {
+				if ($config->database->type == 'pgsql') {
+
+				} else if ($config->database->type == 'mssql') {
+					$_DB->query("SET IDENTITY_INSERT sys_grids ON");
+				}
+			} 
 			$obj_grid_id = $_DB->queryToSingleVal("INSERT INTO {$this->table} ".$this->utils->arrayToQuery(['action' => 'insert', 'array' => $obj_grid, 'return' => $this->primaryKey]));
-			if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids OFF");
+			if ($insertid) {
+				if ($config->database->type == 'pgsql') {
+
+				} else if ($config->database->type == 'mssql') {
+					$_DB->query("SET IDENTITY_INSERT sys_grids OFF");
+				}
+			}
 			
 			//Grid Fields
 			$obj_grid_fields = array_map(function($field) use ($obj_grid_id, $insertid) {
@@ -425,9 +475,21 @@ class sys_grid_model {
 				return $tmpfield;
 			}, $data['fields']);
 			
-            if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids_fields ON");
+            if ($insertid) {
+				if ($config->database->type == 'pgsql') {
+
+				} else if ($config->database->type == 'mssql') {
+					$_DB->query("SET IDENTITY_INSERT sys_grids_fields ON");
+				}
+			}
 			$obj_grid_fields_id = $_DB->queryToArray("INSERT INTO {$this->tableII} ".$this->utils->multipleArrayToInsert($obj_grid_fields, $this->primaryKeyII));
-			if ($insertid) $_DB->query("SET IDENTITY_INSERT sys_grids_fields OFF");
+			if ($insertid) {
+				if ($config->database->type == 'pgsql') {
+					
+				} else if ($config->database->type == 'mssql') {
+					$_DB->query("SET IDENTITY_INSERT sys_grids_fields OFF");
+				}
+			}
 			
 			//Field Attrs
 			foreach(array_keys($data['fields']) as $keyf) {
@@ -488,40 +550,47 @@ class sys_grid_model {
 			],
 			[
 				'targets' => $dtNum++,
-				'title' => "Nombre",
+				'title' => "Nombre campo",
 				'data' => 'name',
 				'orderable' => false,
 				'editType' => 'string'
-            ],
-            [
+			],
+			[
 				'targets' => $dtNum++,
-				'title' => "Columna",
-				'data' => 'column',
-				'orderable' => false,
-				'editType' => 'string'
-            ],
-            [
-				'targets' => $dtNum++,
-				'title' => "Tipo",
+				'title' => "Tipo campo",
 				'data' => 'type',
 				'width' => "150px",
 				'orderable' => false,
 				'editType' => 'select',
-				// 'editConfig' => [
-				// 	"efields" => [
-				// 		"int" => ["attr"],
-				// 		"float" => ["attr"],
-				// 		"text" => ["attr"],
-				// 		"check" => ["attr"],
-				// 		"select" => ["attr", "origen"],
-				// 		"bselect" => ["attr", "origen"],
-				// 		"dtpicker" => ["attr"],
-				// 		"rut" => ["attr"]
-				// 	]
-				// ],
 				'editData' => array_map(function($row) {
 					return ['id' => $row, 'text' => $row];
 				}, $this->fieldTypes)
+			],
+            [
+				'targets' => $dtNum++,
+				'title' => "Nombre columna",
+				'data' => 'column',
+				'orderable' => false,
+				'editType' => 'string'
+			],
+			[
+				'targets' => $dtNum++,
+				'title' => "Tipo columna",
+				'data' => 'column_type',
+				'width' => "150px",
+				'orderable' => false,
+				'editType' => 'select',
+				'editData' => array_map(function($row) {
+					return ['id' => $row, 'text' => $row];
+				}, $this->dbColumnTypes)
+			],
+			[
+				'targets' => $dtNum++,
+				'title' => "Largo columna",
+				'data' => 'column_length',
+				'width' => "150px",
+				'orderable' => false,
+				'editType' => 'string',
 			],
 			[
 				'targets' => $dtNum++,
@@ -620,52 +689,66 @@ class sys_grid_model {
 
 		$columns = [];
 		foreach ($data->fields as $field) {
-			$columns[$field->column] = $field->attr;
-			//Varchar
-			if (in_array($field->type, ['rut', 'text'])) {
-				$columns[$field->column][] = 'varchar';
+			if ($field->attr) {
+				$columns[$field->column]['attr'] = $field->attr;
 			}
-			if (in_array($field->type, ['textarea'])) {
-				$columns[$field->column][] = 'varcharmax';
-			}
-			if (in_array($field->type, ['int', 'check'])) {
-				$columns[$field->column][] = 'int';
-			}
-			if (in_array($field->type, ['select', 'bselect'])) {
-				if ($field->origin) {
-					$originTable = $this->get($field->origin);
-					$primary = array_values(array_filter($originTable->fields, function($ofield) {
-						return in_array('primary', $ofield->attr);
-					}));
-					if ($primary) {
-						$primary = $primary[0];
-						if (in_array($primary->type, ['rut', 'text', 'textarea'])) {
-							$columns[$field->column][] = 'varchar';
+			if (!$field->column_type) {
+				//Setear campos a partir de tipo de campo cuando no haya definicion de tipo de columna (old style)
+
+				//Varchar
+				if (in_array($field->type, ['rut', 'text','image'])) {
+					$columns[$field->column]['type'] = 'varchar';
+				}
+				if (in_array($field->type, ['textarea'])) {
+					$columns[$field->column] = [
+						'type' => 'varchar',
+						'length' => 'max'
+					];
+				}
+				if (in_array($field->type, ['int', 'check'])) {
+					$columns[$field->column]['type'] = 'int';
+				}
+				if (in_array($field->type, ['select', 'bselect'])) {
+					if ($field->origin) {
+						$originTable = $this->get($field->origin);
+						$primary = array_values(array_filter($originTable->fields, function($ofield) {
+							return in_array('primary', $ofield->attr);
+						}));
+						if ($primary) {
+							$primary = $primary[0];
+							if (in_array($primary->type, ['rut', 'text', 'textarea'])) {
+								$columns[$field->column]['type'] = 'varchar';
+							} else {
+								$columns[$field->column]['type'] = 'int';
+							}
 						} else {
-							$columns[$field->column][] = 'int';
+							$columns[$field->column]['type'] = 'int';
 						}
 					} else {
-						$columns[$field->column][] = 'int';
+						$columns[$field->column]['type'] = 'int';
 					}
-				} else {
-					$columns[$field->column][] = 'int';
 				}
+				if (in_array($field->type, ['float'])) {
+					$columns[$field->column]['type'] = 'float';
+				}
+				if (in_array($field->type, ['dtpicker', 'datetime'])) {
+					$columns[$field->column]['type'] = 'timestamp';
+				}
+				if (in_array($field->type, ['date', 'month'])) {
+					$columns[$field->column]['type'] = 'date';
+				}
+				if (in_array($field->type, ['time'])) {
+					$columns[$field->column]['type'] = 'time';
+				}
+			} else {
+				//Setear campos a partir de parametrizaciones específicas (new)
+				$columns[$field->column]['type'] = $field->column_type;
+				if ($field->column_length) $columns[$field->column]['length'] = $field->column_length;
 			}
-			if (in_array($field->type, ['float'])) {
-				$columns[$field->column][] = 'float';
-			}
-			if (in_array($field->type, ['dtpicker', 'datetime'])) {
-				$columns[$field->column][] = 'timestamp';
-			}
-			if (in_array($field->type, ['date', 'month'])) {
-				$columns[$field->column][] = 'date';
-			}
-			if (in_array($field->type, ['time'])) {
-				$columns[$field->column][] = 'time';
-			}
+			
 		}
 
-		//Crear tabla
+		// Crear tabla
 		$this->utils->arrayToTable([
 			'table' => $data->table,
 			'schema' => $schema,
@@ -677,6 +760,13 @@ class sys_grid_model {
 		return [
 			'type' => 'success',
 			'text' => 'La tabla ha sido consolidada'
+			// 'html' => '<pre style="text-align: left;">'.json_encode([
+			// 	'table' => $data->table,
+			// 	'schema' => $schema,
+			// 	'columnDefs' => $columns,
+			// 	'delete' => false,
+			// 	'duplicate' => false
+			// ], JSON_PRETTY_PRINT).'</pre>'
 		];
 	}
 }

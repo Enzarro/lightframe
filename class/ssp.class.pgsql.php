@@ -53,10 +53,10 @@ class SSP {
 				if ($columnKey) {
 					// Is there a formatter?
 					if ( isset( $column['formatter'] ) ) {
-						$row[ $columnKey ] =  utf8_encode($column['formatter']( $data[$i][ $c ], $data[$i] ));
+						$row[ $columnKey ] =  $column['formatter']( $data[$i][ $c ], $data[$i] );
 					}
 					else {
-						$row[ $columnKey ] =  utf8_encode($data[$i][ $c ]);
+						$row[ $columnKey ] =  $data[$i][ $c ];
 					}
 				}
 				

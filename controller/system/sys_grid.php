@@ -11,8 +11,8 @@ class sys_grid {
     function main() {
         $this->frame_view->main([
             'menu' => get_class(),
-            'css' => ['datatables', 'datatables-select', 'datatables-rowreorder'],
-            'js' => ['datatables', 'datatables-select', 'datatables-rowreorder', '/js/system/'.get_class().'.js','popover'],
+            'css' => ['jsoneditor', 'datatables', 'datatables-select', 'datatables-rowreorder'],
+            'js' => ['jsoneditor', 'datatables', 'datatables-select', 'datatables-rowreorder', '/js/system/'.get_class().'.js','popover'],
             'concatPlugins' => false,
             'cboClient' => false,
             'body' => [
@@ -72,7 +72,7 @@ class sys_grid {
         $grid_list = $this->model->get();
         $grids = [];
         foreach ($grid_list as $grid) {
-            $grids[] = $this->model->get($grid['grid_id']);
+            $grids[] = $this->model->get($grid['grid_id'], true);
         }
         header('Content-disposition: attachment; filename=sys_grid.json');
         header('Content-type: application/json');

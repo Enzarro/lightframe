@@ -63,6 +63,10 @@ class database {
             return false;
         }
     }
+
+    function update_sequence($table, $key) {
+        $this->query("SELECT setval(pg_get_serial_sequence('{$table}', '{$key}'), coalesce(max({$key}), 0)+1 , false) FROM {$table}");
+    }
     
     function query_to_array($sql) {
         if (is_string($this->conn)) return false;
