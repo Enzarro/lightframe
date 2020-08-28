@@ -15,12 +15,15 @@ class frame_view {
         $this->login_model = new login_model();
         $this->utils = new utils();
         //Plugins base del frame
-        $this->css = ['adminlte', 'icons', 'validator'];
-        $this->js = ['jquery', 'jquery-cookie', 'adminlte', 'sweetalert', 'validator', '/js/frame.js'];
-        // if ($config->socket->enabled) {
-        //     $this->js[] = "{$config->socket->public}/socket.io/socket.io.js";
-        // }
-        // $this->js = array_merge($this->js, [$this->jsdbstatus(), 'adminTheme', 'jquery-cookie', 'sweetalert', 'validator', 'bootstrap-select', 'select-picker', '/js/frame.js']);
+        //$this->css = ['adminlte', 'icons', 'validator'];
+        //$this->js = ['jquery', 'jquery-cookie', 'adminlte', 'sweetalert', 'validator', '/js/frame.js'];
+
+        $this->css = ['icons', 'adminlte', 'sweetalert', 'bootstrap-select', 'validator','frame','select-picker', 'dropify'];
+        $this->js = [];
+        if ($config->socket->enabled) {
+            $this->js[] = "{$config->socket->public}/socket.io/socket.io.js";
+        }
+        $this->js = array_merge($this->js, [$this->jsdbstatus(), 'jquery', 'jquery-cookie', 'adminlte', 'sweetalert', 'validator', 'bootstrap-select', 'select-picker', 'dropify', '/js/frame.js']);
         
     }
 

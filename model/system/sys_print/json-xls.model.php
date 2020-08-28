@@ -202,7 +202,7 @@ class jsontoxls {
 
                 if (isset($protect) && $protect == true) {
                     //Bloquear hoja (Proteger)
-                    $sheet->getProtection()->setPassword('Datview1208');
+                    $sheet->getProtection()->setPassword('qazwsx.01');
                     $sheet->getProtection()->setSheet(true);
                 }
 
@@ -211,7 +211,7 @@ class jsontoxls {
                 $sheet = $this->spreadsheet->getActiveSheet();
 
                 if (isset($protect) && $protect == true) {
-                    $sheet->getProtection()->setPassword('Datview1208');
+                    $sheet->getProtection()->setPassword('qazwsx.01');
                     $sheet->getProtection()->setSheet(true);
                     $sheet->getStyle('A2:'.$this->letter($colCount-1).(count($data)+1))->getProtection()->setLocked(\PhpOffice\PhpSpreadsheet\Style\Protection::PROTECTION_UNPROTECTED);
                 }

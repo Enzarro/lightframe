@@ -3,6 +3,7 @@
 /public/php_errors.log
 /database
 /tempcsv
+/.vscode
 config.json
 config.demo.json
 config.qa.json

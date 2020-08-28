@@ -1,4 +1,12 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+ini_set('memory_limit', '4095M');
+ini_set("pcre.backtrack_limit", "20000000");
+
 $frame_start = microtime(true);
 
 header('Access-Control-Allow-Origin: *');
@@ -12,6 +20,7 @@ if($method == "OPTIONS") {
 
 date_default_timezone_set('America/Santiago');
 setlocale(LC_ALL, "es_ES", 'Spanish_Spain', 'Spanish');
+setlocale(LC_TIME, 'es_ES', 'Spanish_Spain', 'Spanish');
 
 //Global
 define('path', '../');
@@ -42,9 +51,13 @@ if (file_exists(base."/sysres.json")) {
     exit();
 }
 //Global from config file
-define('base_url', "{$config->global->public_url}:{$_SERVER['SERVER_PORT']}");
-define('public_url', "{$config->global->public_url}:{$_SERVER['SERVER_PORT']}");
-//include(base.'/vendor/autoload.php');
+// define('base_url', "{$config->global->public_url}:{$_SERVER['SERVER_PORT']}");
+// define('public_url', "{$config->global->public_url}:{$_SERVER['SERVER_PORT']}");
+define('base_url', "{$config->global->public_url}");
+define('public_url', "{$config->global->public_url}");
+if (file_exists(base.'/vendor/autoload.php')) {
+    include(base.'/vendor/autoload.php');
+}
 //DB object
 include(classes.'utils.php');
 if ($config->database->type == "pgsql") {
@@ -76,11 +89,13 @@ utils::autoLoad();
 $_DB = new database($config->database);
 
 $client = null;
-if (!is_string($_DB->conn) && ((isset($_GET['client']) && $_GET['client']) || (isset($_POST['client']) && $_POST['client'])) ) {
+if (!is_string($_DB->conn) && ((isset($_GET['client']) && $_GET['client']) || (isset($_POST['client']) && $_POST['client'] && is_numeric($_POST['client']))) ) {
     $sys_clients_model = new sys_clients_model();
     $client = $sys_clients_model->get(isset($_GET['client'])?$_GET['client']:$_POST['client']);
 }
 
-error_log('Before loading frame class: '.round((microtime(true) - $frame_start) * 1000, 3).' ms');
+// error_log('Before loading frame class: '.round((microtime(true) - $frame_start) * 1000, 3).' ms');
 
 new lightframe();
+
+// error_log('After loading frame class: '.round((microtime(true) - $frame_start) * 1000, 3).' ms');
