@@ -11,101 +11,12 @@ class utils {
         global $config;
         $this->db = $_DB;
         $this->config = $config;
+        if (file_exists(base."/pluginlist.json")) {
+            $this->pluginlist = json_decode(file_get_contents(base."/pluginlist.json"), true);
+        }
     }
 
-    var $pluginlist = [
-        'jquery' => [
-            '/bower_components/jquery/dist/jquery.min.js'
-            
-        ],
-        'jquery-cookie' => [
-            '/bower_components/jquery-cookie/jquery.cookie.js'
-        ],
-        'jquery-tree' => [
-            '/bower_components/jquery-tree/tree.jquery.js',
-            '/bower_components/jquery-tree/jqtree.css'
-        ],
-        'adminlte' => [
-            '/bower_components/bootstrap/dist/js/bootstrap.min.js',
-            '/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
-            '/bower_components/fastclick/lib/fastclick.js',
-            '/dist/js/adminlte.min.js',
-            '/bower_components/bootstrap/dist/css/bootstrap.min.css',
-            // '/dist/css/modern-AdminLTE.min.css',
-            '/dist/css/AdminLTE.min.css',
-            
-            '/dist/css/skins/_all-skins.min.css'
-            
-        ],
-        'frame' => [
-            'public/js/frame.js'
-        ],
-        'validator' => [
-            '/bower_components/validator/validator.min.css',
-            '/bower_components/validator/validator.min.js'
-        ],
-        'icons' => [
-            //'/bower_components/font-awesome/css/font-awesome.min.css',
-            '/bower_components/gs-font-awesome/css/all.min.css',
-            
-            '/bower_components/gs-foundation-icon-fonts/foundation-icons.css',
-            '/bower_components/gs-material-design-icons/material-icons.css',
-            '/bower_components/Ionicons/css/ionicons.min.css',
-            
-            '/bower_components/Ionicons/css/ionicons.min.css'
-        ],
-        'sweetalert' => [
-            '/bower_components/sweetalert2/sweetalert2.all.min.js'
-        ],
-        'autonumeric' => [
-            '/bower_components/autoNumeric/autoNumeric.min.js'
-        ],
-        'datatables' => [
-            '/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
-            '/bower_components/datatables.net/js/jquery.dataTables.min.js',
-            '/bower_components/datatables.net/spanish.js',
-            '/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
-            // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.js',
-            // '/bower_components/datatables.net/datatables-responsive/dataTables.responsive.css',
-            // 'core/bootstrap_admin/vendor/datatables/css/dataTables.bootstrap.min.css'
-        ],
-        'datatables-select' => [
-            "/plugins/datatables-plugins/dataTables.select.min.js",
-            "/plugins/datatables-plugins/select.dataTables.min.css"
-        ],
-        'datetimepicker' => [
-            '/bower_components/bootstrap-datetimepicker/moment.min.js',
-            '/bower_components/bootstrap-datetimepicker/moment.locale.es.js',
-            '/bower_components/bootstrap/js/transition.js',
-            '/bower_components/bootstrap/js/collapse.js',
-            '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js',
-            '/bower_components/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css'
-        ],
-        'typeahead' => [
-            'core/js/typeahead/bootstrap3-typeahead.js',
-
-        ],
-        'jasny' => [
-            'core/js/upload/js/jasny-bootstrap.min.js',
-            'core/js/upload/css/jasny-bootstrap.min.css'
-        ],
-        'autosuggest' => [
-            'core/js/autocomplete_login/bsn.AutoSuggest_2.1.3.js',
-            'core/js/autocomplete_login/autosuggest_inquisitor.css'
-        ],
-        'bootstrap-select' => [
-            '/bower_components/bootstrap-select/js/bootstrap-select.min.js',
-            '/bower_components/bootstrap-select/js/i18n/defaults-es_CL.min.js',
-            '/bower_components/bootstrap-select/css/bootstrap-select.min.css'
-        ],
-        'socket' => [
-            'nodejs/public/js/socket.io.js'
-        ],
-        'icheck' => [
-            './plugins/iCheck/icheck.min.js',
-            './plugins/iCheck/all.css'
-        ]
-    ];
+    var $pluginlist = [];
 
     var $excludeConcat = [
         'icons'

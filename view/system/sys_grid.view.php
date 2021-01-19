@@ -13,36 +13,42 @@ class sys_grid_view {
     function html($data = null) {
         ob_start(); ?>
 
-        <div class="card">					
-            <div class="card-header border-bottom-blue-grey border-bottom-lighten-4 box-shadow-0 border-bottom-2 ">
-                <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
-                <button id="main-delete" class="btn btn-danger"><span class="fa fa-trash"></span> Eliminar</button>
-                <button id="main-export" class="btn btn-success" title='Exportar'><span class="fa fa-download"></span></button>	
-                <label for="main-import">
-                    <span class="btn btn-primary btn-file" title='Importar'><span class="fa fa-upload"></span></span>
-                </label>		
-            </div>					
-            <div class="card-body">						
-                <table width="100%" class="table table-striped table-bordered table-hover" cellspacing="0" id="mantenedores"></table>					
-            </div>				
-        </div>	
-
-        <div class="modal animated fade" id="modal-default" data-backdrop="static" data-keyboard="false">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header border-bottom-blue-grey border-bottom-lighten-4">
-                        <h4 class="modal-title"><?=$data['modalTitle']?></h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <i class="fas fa-times"></i>
-                        </button>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                    <!-- <h3 class="box-title"></h3> -->
+                        <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
+                        <button id="main-delete" class="btn btn-danger"><span class="fa fa-trash"></span> Eliminar</button>
+                        <button id="main-export" class="btn btn-success" title='Exportar'><span class="fa fa-download"></span></button>	
+                        <label for="main-import">
+                            <span class="btn btn-primary btn-file" title='Importar'><span class="fa fa-upload"></span></span>
+                        </label>
                     </div>
-                    <div class="modal-body "></div>
-                    <div class="modal-footer  border-top-blue-grey border-top-lighten-4">
-                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fas fa-times"></i> Cerrar</button>
-                        <button id="save" type="button" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
+                    <div class="box-body">
+                        <table id="mantenedores" class="table table-bordered table-striped"></table>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="modal fade" id="modal-default" style="display: none;">
+            <div class="modal-dialog" style="width: 90%;">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span></button>
+                    <h4 class="modal-title"><?=$data['modalTitle']?></h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cerrar</button>
+                    <button id="save" type="button" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
+                </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
         </div>
 
         <div class="col-md-12" style="min-height: 100% !important;">

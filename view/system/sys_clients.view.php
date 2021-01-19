@@ -13,7 +13,53 @@ class sys_clients_view {
     function html($data = null) {
         ob_start(); ?>
 
-        <div class="card">					
+<div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                    <!-- <h3 class="box-title"></h3> -->
+                    <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
+                <button id="main-delete" class="btn btn-danger"><span class="fa fa-trash"></span> Eliminar</button>
+                <button id="main-consolidate" class="btn btn-warning"><span class="fa fa-database"></span> Consolidar</button>
+                <button id="main-spdbo" class="btn btn-warning"><span class="fa fa-file-code"></span> SP DBO</button>
+                <button id="main-spcli" class="btn btn-warning"><span class="fa fa-file-code"></span> SP CLI</button>
+                <button id="main-cleansing" class="btn btn-outline-flickr"><span class="fa fa-broom"></span> Limpiar</button>
+                    </div>
+                    <div class="box-body">
+                        <table id="mantenedores" class="table table-bordered table-striped"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modal-default" style="display: none;">
+            <div class="modal-dialog" style="width: 90%;">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span></button>
+                    <h4 class="modal-title"><?=$data['modalTitle']?></h4>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cerrar</button>
+                    <button id="save" type="button" class="btn btn-primary"><span class="fa fa-save"></span> Guardar</button>
+                </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
+        <div class="col-md-12" style="min-height: 100% !important;">
+            <form class="form form-horizontal" id="jsonxls" action="sys_grid/export" target="_blank"></form>
+        </div> 
+
+        <div class="col-md-12" style="min-height: 100% !important;">   
+            <input type="file" id="main-import" name="main-import" accept="application/JSON" style="display:none;">    
+        </div>
+
+        <!-- <div class="card">					
             <div class="card-header border-bottom-blue-grey border-bottom-lighten-4 box-shadow-0 border-bottom-2 ">
                 <button id="main-new" class="btn btn-primary"><span class="fa fa-plus"></span> Nuevo</button>
                 <button id="main-delete" class="btn btn-danger"><span class="fa fa-trash"></span> Eliminar</button>
@@ -43,7 +89,7 @@ class sys_clients_view {
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
     
         <?php return ob_get_clean();
     }
