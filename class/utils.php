@@ -539,76 +539,47 @@ class utils {
         $qryCreate .= ")";
 
 		$createTable = true;
-		//Check if temp table exists
-		$query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
-        $reg = $_DB->queryToSingleVal($query);
+        //Check if temp table exists
+        $diff = $this->compareTableDefs($schema, $table, $columns);
+        return $diff;
 
-		if ($reg) {
-            //Extract columns from DB
-            if ($config->database->type == "pgsql") {
-                $query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
-            } else if ($config->database->type == "mssql") {
-                $query = "SELECT column_name, data_type as udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
-            }
-			
-			$res = $_DB->queryToArray($query);
-			$dbColumns = [];
-			foreach ($res as $column) {
-                $column = (object)$column;
-                if ($column && property_exists($column, 'column_name')) {
-                    $dbColumns[$column->column_name] = $column->udt_name;
-                } else {
-                    ob_start();
-                    echo $query;
-                    var_dump($column);
-                    error_log(ob_get_clean());
-                    die;
-                }
-			}
-			//Compare columns
-            $comparisonAdd = array_diff_assoc($columns, $dbColumns);
-            $comparisonSub = array_diff_assoc($dbColumns, $columns);
-			if (!empty($comparisonAdd) || !empty($comparisonSub)) {
-                if ($preserve) {
-                    //Traer toda la data desde la tabla que se va a droppear
-                    $tmpData = $_DB->queryToArray("SELECT * FROM {$schema}.{$table}");
-                    //Guardar data en CSV
-                    $this->saveTempCSV($tmpData, $table, $schema);
-                    if ($tmpData) {
-                        $columnKeys = array_keys($columnDefs);
-                        //Old data in new columns / delete old columns data
-                        $tmpData = array_map(function($row) use ($columnKeys) {
-                            $newrow = [];
-                            foreach (array_keys($row) as $ckey) {
-                                if (in_array($ckey, $columnKeys)) {
-                                    $newrow[$ckey] = $row[$ckey];
-                                }
+        if (!empty($diff['comparisonAdd']) || !empty($diff['comparisonSub'])) {
+            if ($preserve) {
+                //Traer toda la data desde la tabla que se va a droppear
+                $tmpData = $_DB->queryToArray("SELECT * FROM {$schema}.{$table}");
+                //Guardar data en CSV
+                $this->saveTempCSV($tmpData, $table, $schema);
+                if ($tmpData) {
+                    $columnKeys = array_keys($columnDefs);
+                    //Old data in new columns / delete old columns data
+                    $tmpData = array_map(function($row) use ($columnKeys) {
+                        $newrow = [];
+                        foreach (array_keys($row) as $ckey) {
+                            if (in_array($ckey, $columnKeys)) {
+                                $newrow[$ckey] = $row[$ckey];
                             }
-                            return $newrow;
-                        }, $tmpData);
-                        //Venía data por defecto
-                        if (isset($data)) {
-                            if ($key) {
-                                $oldKeyVals = array_column($tmpData, $key);
-                                foreach ($data as $row) {
-                                    if (!in_array($row[$key], $oldKeyVals)) {
-                                        $tmpData[] = $row;
-                                    }
+                        }
+                        return $newrow;
+                    }, $tmpData);
+                    //Venía data por defecto
+                    if (isset($data)) {
+                        if ($key) {
+                            $oldKeyVals = array_column($tmpData, $key);
+                            foreach ($data as $row) {
+                                if (!in_array($row[$key], $oldKeyVals)) {
+                                    $tmpData[] = $row;
                                 }
                             }
                         }
-                        $data = $tmpData;
                     }
+                    $data = $tmpData;
                 }
-                $_DB->query("DROP TABLE {$schema}.{$table};");
-                error_log("Dropping table {$schema}.{$table}, comparison: ".json_encode($comparisonAdd).json_encode($comparisonSub), 0);
-                error_log("DB Columns: ".json_encode($dbColumns));
-                error_log("New Columns: ".json_encode($columns));
-			} else {
-				$createTable = false;
-			}
-
-		}
+            }
+            $_DB->query("DROP TABLE {$schema}.{$table};");
+            error_log("Dropping table {$schema}.{$table}, comparison: ".json_encode($comparisonAdd).json_encode($comparisonSub), 0);
+            error_log("DB Columns: ".json_encode($dbColumns));
+            error_log("New Columns: ".json_encode($columns));
+        }
 
 		//Create table
 		if ($createTable) {
@@ -650,6 +621,48 @@ class utils {
             }
 		}
 		
+    }
+
+    function compareTableDefs($schema, $table, $columns) {
+        global $config;
+        global $_DB;
+
+        $query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+        $reg = $_DB->queryToSingleVal($query);
+
+		if ($reg) {
+            //Extract columns from DB
+            if ($config->database->type == "pgsql") {
+                $query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+            } else if ($config->database->type == "mssql") {
+                $query = "SELECT column_name, data_type as udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+            }
+			
+			$res = $_DB->queryToArray($query);
+			$dbColumns = [];
+			foreach ($res as $column) {
+                $column = (object)$column;
+                if ($column && property_exists($column, 'column_name')) {
+                    $dbColumns[$column->column_name] = $column->udt_name;
+                } else {
+                    ob_start();
+                    echo $query;
+                    var_dump($column);
+                    error_log(ob_get_clean());
+                    die;
+                }
+			}
+			//Compare columns
+            $comparisonAdd = array_diff_assoc($columns, $dbColumns);
+            $comparisonSub = array_diff_assoc($dbColumns, $columns);
+			if (!empty($comparisonAdd) || !empty($comparisonSub)) {
+                return compact(['comparisonAdd', 'comparisonSub']);
+			} else {
+                return;
+				$createTable = false;
+			}
+
+		}
     }
     
     function saveTempCSV($array, $table, $schema) {
