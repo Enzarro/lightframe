@@ -25,44 +25,46 @@ class sys_grid {
     }
 
     function list() {
-        echo json_encode($this->model->list());
+        return $this->model->list();
     }
 
     function form() {
         if (!isset($_POST["id"])) {
-            echo $this->view->form();
+            return $this->view->form();
         } else {
             $data = $this->model->get($_POST["id"]);
-            echo $this->view->form($data);
+            return $this->view->form($data);
         }
     }
 
     function consolidate() {
-        //Traer listado de clientes
-        $clients = $this->clients_model->get();
-
+        set_time_limit(60 * 10);
+        
         $grid = $this->model->get($_POST['id']);
 
         if ($grid->target_schema == 2) {
+            //Traer listado de clientes
+            $clients = $this->clients_model->get();
+
             $lastres = null;
             foreach (array_keys($clients) as $key) {
                 $clientData = (object)$clients[$key];
                 $lastres = $this->model->consolidate($grid->id, $clientData->db_name);
             }
-            echo json_encode($lastres);
+            return $lastres;
         } else {
             //Consolidar tabla seleccionada
-            echo json_encode($this->model->consolidate($grid->id));
+            return $this->model->consolidate($grid->id);
         }
     }
 
     function set() {
-        echo json_encode($this->model->set($_POST));
+        return $this->model->set($_POST);
         // echo json_encode((object)$_POST["fields"][0]);
     }
 
     function delete() {
-        echo json_encode($this->model->delete($_POST['list']));
+        return $this->model->delete($_POST['list']);
     }
 
     function export() {
@@ -77,6 +79,7 @@ class sys_grid {
         header('Content-disposition: attachment; filename=sys_grid.json');
         header('Content-type: application/json');
         echo json_encode($grids, JSON_PRETTY_PRINT);
+        die;
     }
 
     function import() {
@@ -103,17 +106,17 @@ class sys_grid {
 					]
 				]);
             }
-            echo json_encode([
+            return [
                 'type' => 'success',
                 'title' => 'Definiciones cargadas',
                 'html' => 'Se han cargado <b>'.count($data).'</b> definiciones de tablas.'
-            ]);
+            ];
         } else {
-            echo json_encode([
+            return [
                 'type' => 'warning',
                 'title' => 'Definiciones no cargadas',
                 'html' => 'No hay registros en el archivo subido.'
-            ]);
+            ];
         }
         
     }

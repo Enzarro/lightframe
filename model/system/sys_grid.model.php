@@ -128,6 +128,15 @@ class sys_grid_model {
 				}
 			],
 			[
+				'dt' => $dtNum++,
+				'db' => "''",
+				'alias' => 'resume',
+				'title' => 'Resumen',
+				'formatter' => function ($data) {
+					
+				}
+			],
+			[
 				
 				//DT
 				'dt' => $dtNum++,
@@ -749,13 +758,14 @@ class sys_grid_model {
 		}
 
 		// Crear tabla
-		$this->utils->arrayToTable([
+		$res = $this->utils->arrayToTable([
 			'table' => $data->table,
 			'schema' => $schema,
             'columnDefs' => $columns,
             'delete' => false,
             'duplicate' => false
 		]);
+		return $res;
 		
 		return [
 			'type' => 'success',

@@ -241,7 +241,7 @@ class SSP {
 	 *  @param  array  $columns Column information array
 	 *  @return array  Server-side processing response array
 	 */
-	static function simple ( $request, $pg_details, $table, $primaryKey, $columns, $filtroAdd=NULL ) {
+	static function simple ( $request, $pg_details, $table, $primaryKey, $columns, $filtroAdd=NULL, $sql = null) {
 		global $_DB;
 		//Return DataTables Configuration
 		foreach($columns as $key => &$val){
@@ -287,14 +287,26 @@ class SSP {
 		$limit = SSP::limit( $request, $columns );
 		$order = SSP::order( $request, $columns );
 		$where = SSP::filter( $request, $columns, $filtroAdd );
-		$select = "SELECT ".implode(", ", SSP::pluckas($columns)).", count(*) OVER() AS full_count FROM $table $where $order $limit";
+		if ($sql) {
+			$countcol = ", count(*) OVER() AS full_count ";
+			if (strpos($sql, $countcol) === false) {
+				$sql = explode('FROM', $sql);
+				$lastfrom = count($sql) - 1;
+				$sql[$lastfrom] = $sql[$lastfrom] . $countcol;
+				$sql = implode('FROM', $sql);
+			}
+			$select = "$sql $where $order $limit";
+		} else {
+			$select = "SELECT ".implode(", ", SSP::pluckas($columns)).", count(*) OVER() AS full_count FROM $table $where $order $limit";
+		}
+		
 		//Debug
 		
 		//echo "Consulta para la tabla: $select<br>";
     	// $result = pg_query( $db, $select ) or SSP::fatal("Error al ejecutar la consulta.\n". pg_last_error()."\n $select");
 		// $data = pg_fetch_all($result);
 		$time_start = microtime(true);
-		error_log($select);
+		// error_log($select);
 		$data = $_DB->queryToArray($select);
 		
 		

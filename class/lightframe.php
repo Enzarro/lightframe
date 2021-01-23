@@ -198,7 +198,12 @@ class lightframe {
             //Validar si existe esa función en la instancia
             if (method_exists($instancia, $funcion)) {
                 //Llamar a la función
-                $instancia->$funcion();
+                $result = $instancia->$funcion();
+                if (is_array($result)) {
+                    echo json_encode($result);
+                } else {
+                    echo $result;
+                }
             } else {
                 $this->notFoundUrl($uris[1]);
             }

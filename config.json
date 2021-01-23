@@ -15,6 +15,16 @@
         "public_url": "http:\/\/127.0.0.1"
     },
     "database": {
+        "profile": "Dev",
+        "host": "database-bc1.cg80chltwwcq.us-east-1.rds.amazonaws.com",
+        "port": "1433",
+        "name": "lightframe_test",
+        "user": "adminbc",
+        "pass": "6je76wH1186jbQWe9vFy",
+        "maxmassinsert": 1000,
+        "type": "mssql"
+    },
+    "database_2": {
         "host": "bconnectdeveast.cg80chltwwcq.us-east-1.rds.amazonaws.com",
         "port": "5432",
         "name": "dbtest",
@@ -24,42 +34,5 @@
     },
     "login": {
         "host": ""
-    },
-    "sysres": [
-        {
-            "id": -1,
-            "parent_id": null,
-            "texto": "Sistema",
-            "icono": "fa fa-terminal",
-            "funcion": null
-        },
-        {
-            "id": -2,
-            "parent_id": -1,
-            "texto": "Configuraciones",
-            "icono": "fa fa-wrench",
-            "funcion": "sys_config"
-        },
-        {
-            "id": -3,
-            "parent_id": null,
-            "texto": "Mantenedores",
-            "icono": "fa fa-clipboard",
-            "funcion": null
-        },
-        {
-            "id": -4,
-            "parent_id": -3,
-            "texto": "\u00c1rbol de recursos",
-            "icono": "fa fa-tree",
-            "funcion": "sys_tree"
-        },
-        {
-            "id": -5,
-            "parent_id": -3,
-            "texto": "Grillas",
-            "icono": "fa fa-th-large",
-            "funcion": "sys_grid"
-        }
-    ]
+    }
 }

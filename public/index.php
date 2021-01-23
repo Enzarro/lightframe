@@ -31,7 +31,7 @@ define('views', base.'view/');
 define('controllers', base.'controller/');
 define('classes', base.'class/');
 //Load config file
-$config = [];
+$config = (object)[];
 if (file_exists(base."/config.json")) {
     $config = json_decode(file_get_contents(base."/config.json"));
 } elseif (file_exists(base."/config.dev.json")) {

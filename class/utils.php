@@ -6,11 +6,14 @@ use PHPMailer\PHPMailer\Exception;
 
 
 class utils {
+
     function __construct() {
         global $_DB;
         global $config;
+
         $this->db = $_DB;
         $this->config = $config;
+
         if (file_exists(base."/pluginlist.json")) {
             $this->pluginlist = json_decode(file_get_contents(base."/pluginlist.json"), true);
         }
@@ -155,6 +158,8 @@ class utils {
         //     return views.$file;
         // }, $views);
         // self::load($views);
+
+        while (ob_get_level()) ob_end_clean();
     }
 
     static function load_files($target) {
@@ -288,6 +293,24 @@ class utils {
 
         if ($json) return json_decode($result, true);
         return $result;
+
+
+        // $guzzle = new Client();
+        // // $guzzle->setDefaultOption('verify', false);
+        // if (!$data) {
+        //     return false;
+        // }
+        // $params = $guzzle->request(
+        //     'POST',
+        //     $url,
+        //     [
+        //         'form_params' => $data
+        //     ]
+        // );
+        // $result = $params->getBody()->getContents();  
+
+        // if ($json) return json_decode($result, true);
+        // return $result;
     }
 
     static function curl_post_async($url, $params)
@@ -425,27 +448,27 @@ class utils {
                             $qryCreate .= "{$ckey} INT";
                         }
                         if ($config->database->type == "pgsql") {
-                            $columns[$ckey] = 'int4';
+                            $columns[$ckey] = 'int32';
                         } else if ($config->database->type == "mssql") {
-                            $columns[$ckey] = 'int';
+                            $columns[$ckey] = 'int10';
                         }
                     } else if (in_array('varchar', $columnDefs[$ckey])) {
                         $qryCreate .= "{$ckey} VARCHAR(255)";
-                        $columns[$ckey] = 'varchar';
+                        $columns[$ckey] = 'varchar255';
                     } else if (in_array('varcharmax', $columnDefs[$ckey])) {
                         if ($config->database->type == "pgsql") {
                             $qryCreate .= "{$ckey} VARCHAR";
-                            $columns[$ckey] = 'varchar';
+                            $columns[$ckey] = 'varchar0';
                         } else if ($config->database->type == "mssql") {
                             $qryCreate .= "{$ckey} NVARCHAR(MAX)";
-                            $columns[$ckey] = 'nvarchar';
+                            $columns[$ckey] = 'nvarchar0';
                         }
                     } else if (in_array('float', $columnDefs[$ckey])) {
                         $qryCreate .= "{$ckey} FLOAT";
                         if ($config->database->type == "pgsql") {
-                            $columns[$ckey] = 'float4';
+                            $columns[$ckey] = 'float53';
                         } else if ($config->database->type == "mssql") {
-                            $columns[$ckey] = 'float';
+                            $columns[$ckey] = 'float53';
                         }
                     } else if (in_array('timestamp', $columnDefs[$ckey])) {
                         if ($config->database->type == "pgsql") {
@@ -467,7 +490,7 @@ class utils {
                             $columns[$ckey] = 'json';
                         } else if ($config->database->type == "mssql") {
                             $qryCreate .= "{$ckey} NVARCHAR(MAX)";
-                            $columns[$ckey] = 'nvarchar';
+                            $columns[$ckey] = 'nvarchar0';
                         }
                     }
 
@@ -483,6 +506,19 @@ class utils {
                     if (isset($columnDefs[$ckey]['length']) && $columnDefs[$ckey]['length'] == 'max' && $config->database->type == "pgsql") {
                         $columnDefs[$ckey]['length'] = null;
                     }
+                    if (!isset($columnDefs[$ckey]['length'])) {
+                        if ($columnDefs[$ckey]['type'] == 'int') {
+                            if ($config->database->type == "pgsql") {
+                                $columnDefs[$ckey]['length'] = 32;
+                            } else if ($config->database->type == "mssql") {
+                                $columnDefs[$ckey]['length'] = 10;
+                            }
+                        } else if ($columnDefs[$ckey]['type'] == 'float') {
+                            $columnDefs[$ckey]['length'] = 53;
+                        } else if (in_array($columnDefs[$ckey]['type'], ['varchar'])) {
+                            $columnDefs[$ckey]['length'] = 0;
+                        }
+                    }
                     //Características
                     if (isset($columnDefs[$ckey]['attr'])) {
                         if ($columnDefs[$ckey]['type'] == 'int' && in_array('autonum', $columnDefs[$ckey]['attr'])) {
@@ -494,7 +530,7 @@ class utils {
                         } else {
                             $qryCreate .= ("{$ckey} {$columnDefs[$ckey]['type']}" . (isset($columnDefs[$ckey]['length'])?"({$columnDefs[$ckey]['length']})":""));
                         }
-                        $columns[$ckey] = $columnDefs[$ckey]['type'];
+                        $columns[$ckey] = ("{$columnDefs[$ckey]['type']}" . (isset($columnDefs[$ckey]['length'])?"{$columnDefs[$ckey]['length']}":""));
                         if (in_array('primary', $columnDefs[$ckey]['attr'])) {
                             $qryCreate .= " PRIMARY KEY";
                         }
@@ -503,7 +539,7 @@ class utils {
                         }
                     } else {
                         $qryCreate .= ("{$ckey} {$columnDefs[$ckey]['type']}" . (isset($columnDefs[$ckey]['length'])?"({$columnDefs[$ckey]['length']})":""));
-                        $columns[$ckey] = $columnDefs[$ckey]['type'];
+                        $columns[$ckey] = ("{$columnDefs[$ckey]['type']}" . (isset($columnDefs[$ckey]['length'])?"{$columnDefs[$ckey]['length']}":""));
                     }
                 }
                 
@@ -613,7 +649,16 @@ class utils {
                 if ($config->database->type == "mssql") {
                     $_DB->query("SET IDENTITY_INSERT {$schema}.{$table} ON");
                 }
-                $_DB->query("INSERT INTO {$schema}.{$table} ".$this->multipleArrayToInsert($data));
+
+                if (isset($config->database->maxmassinsert) && count($data) > $config->database->maxmassinsert) {
+                    //Supera el límite de insert masivo - recortar e insertar
+                    foreach (array_chunk($data, $config->database->maxmassinsert) as $chunk) {
+                        $_DB->queryToArray("INSERT INTO {$schema}.{$table} ".$this->multipleArrayToInsert($chunk));
+                    }
+                } else {
+                    $_DB->queryToArray("INSERT INTO {$schema}.{$table} ".$this->multipleArrayToInsert($data));
+                }
+
                 if ($config->database->type == "mssql") {
                     $_DB->query("SET IDENTITY_INSERT {$schema}.{$table} OFF");
                 }
@@ -633,17 +678,29 @@ class utils {
 		if ($reg) {
             //Extract columns from DB
             if ($config->database->type == "pgsql") {
-                $query = "SELECT column_name, udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+                $query = "SELECT column_name, udt_name, COALESCE(character_maximum_length, 0) as length, numeric_precision FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
             } else if ($config->database->type == "mssql") {
-                $query = "SELECT column_name, data_type as udt_name FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
+                $query = "SELECT column_name, data_type as udt_name, CASE character_maximum_length WHEN -1 THEN 0 ELSE character_maximum_length END as length, numeric_precision FROM information_schema.columns WHERE table_schema = '{$schema}' AND table_name = '{$table}'";
             }
 			
 			$res = $_DB->queryToArray($query);
 			$dbColumns = [];
 			foreach ($res as $column) {
-                $column = (object)$column;
-                if ($column && property_exists($column, 'column_name')) {
-                    $dbColumns[$column->column_name] = $column->udt_name;
+                if ($column && isset($column['column_name'])) {
+                    if (in_array($column['udt_name'], ['varchar']) && isset($column['length'])) {
+                        $dbColumns[$column['column_name']] = $column['udt_name'] . $column['length'];
+                    } else {
+                        $startsWith = ['int', 'float'];
+                        $found = false;
+                        foreach ($startsWith as $type) {
+                            if (utils::startsWith($column['udt_name'], $type)) {
+                                $dbColumns[$column['column_name']] = $type . $column['numeric_precision'];
+                                $found = true;
+                                break;
+                            }
+                        }
+                        if (!$found) $dbColumns[$column['column_name']] = $column['udt_name'];
+                    }
                 } else {
                     ob_start();
                     echo $query;
@@ -656,16 +713,18 @@ class utils {
             $comparisonAdd = array_diff_assoc($columns, $dbColumns);
             $comparisonSub = array_diff_assoc($dbColumns, $columns);
 			if (!empty($comparisonAdd) || !empty($comparisonSub)) {
-                return compact(['comparisonAdd', 'comparisonSub']);
+                return compact(['comparisonAdd', 'comparisonSub', 'columns', 'dbColumns']);
 			} else {
+                return compact(['comparisonAdd', 'comparisonSub', 'columns', 'dbColumns']);
                 return;
 				$createTable = false;
 			}
 
 		}
     }
-    
+
     function saveTempCSV($array, $table, $schema) {
+        if (!$array) return;
         $dir = base."tempcsv/{$schema}/";
         //Crear carpeta
         if (!is_dir($dir)) {
